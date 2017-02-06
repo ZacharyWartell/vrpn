@@ -31,6 +31,9 @@ profile
 pc_cygwin
 .depend
 
+# where I put Cmake results...
+build/
+
 # Visual Studio
 UpgradeLog*
 Debug/
