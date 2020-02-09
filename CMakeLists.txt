@@ -79,41 +79,45 @@ endif()
 ###
 # Basic packaging options and versioning
 
-include("${CMAKE_CURRENT_SOURCE_DIR}/ParseVersion.cmake")
+if (VRPN_INSTALL)
+	include("${CMAKE_CURRENT_SOURCE_DIR}/ParseVersion.cmake")
 
-message(STATUS
-	"Configuring the VRPN suite version ${CPACK_PACKAGE_VERSION} using the CMake-based build system\n")
+	message(STATUS
+		"Configuring the VRPN suite version ${CPACK_PACKAGE_VERSION} using the CMake-based build system\n")
 
-set(CPACK_PACKAGE_VENDOR
-	"VRPN Community led by Sensics, Inc.")
-set(CPACK_PACKAGE_FILE_NAME
-	"${PROJECT_NAME}-${CPACK_PACKAGE_VERSION}-${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}")
-set(CPACK_SOURCE_PACKAGE_FILE_NAME
-	"${PROJECT_NAME}-${CPACK_PACKAGE_VERSION}-src")
-set(CPACK_PACKAGE_CONTACT "Sensics VRPN Contact <vrpn@sensics.com>")
+	set(CPACK_PACKAGE_VENDOR
+		"VRPN Community led by Sensics, Inc.")
+	set(CPACK_PACKAGE_FILE_NAME
+		"${PROJECT_NAME}-${CPACK_PACKAGE_VERSION}-${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}")
+	set(CPACK_SOURCE_PACKAGE_FILE_NAME
+		"${PROJECT_NAME}-${CPACK_PACKAGE_VERSION}-src")
+	set(CPACK_PACKAGE_CONTACT "Sensics VRPN Contact <vrpn@sensics.com>")
+endif()
 
-#-----------------------------------------------------------------------------
-# Compiler flags we got from Hans for Windows and from Sheldon Andrews
-# for other architectures.
-if(MSVC)	# MS-Windows Visual Studio, both 32 and 64 bits
-	set(CMAKE_DEBUG_POSTFIX "d" CACHE STRING "add a postfix, usually d on windows")
-	if(MSVC_VERSION GREATER 1310) # This compiler flag needs newer than VS.NET 2003 (7.1)
-		# Choose fast, possibly less accurate floating point
-		# See http://msdn.microsoft.com/en-us/library/e7s85ffb(v=vs.80).aspx
-		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /fp:fast")
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /fp:fast")
+if (NOT SUBPROJECT)
+	#-----------------------------------------------------------------------------
+	# Compiler flags we got from Hans for Windows and from Sheldon Andrews
+	# for other architectures.
+	if(MSVC)	# MS-Windows Visual Studio, both 32 and 64 bits
+		set(CMAKE_DEBUG_POSTFIX "d" CACHE STRING "add a postfix, usually d on windows")
+		if(MSVC_VERSION GREATER 1310) # This compiler flag needs newer than VS.NET 2003 (7.1)
+			# Choose fast, possibly less accurate floating point
+			# See http://msdn.microsoft.com/en-us/library/e7s85ffb(v=vs.80).aspx
+			set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /fp:fast")
+			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /fp:fast")
+		endif()
+
+		# Do not assume fixed base address (probably for DLL integration?)
+		# http://msdn.microsoft.com/en-us/library/w368ysh2(v=vs.80).aspx
+		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /FIXED:NO")
+	else()
+		# GCC compilers on 64-bit machines require -fPIC for shared libraries or libs
+		# linked into shared libraries.
+
+		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${CMAKE_SHARED_LIBRARY_C_FLAGS}")
+		set(CMAKE_CXX_FLAGS
+			"${CMAKE_CXX_FLAGS} ${CMAKE_SHARED_LIBRARY_CXX_FLAGS}")
 	endif()
-
-	# Do not assume fixed base address (probably for DLL integration?)
-	# http://msdn.microsoft.com/en-us/library/w368ysh2(v=vs.80).aspx
-	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /FIXED:NO")
-else()
-	# GCC compilers on 64-bit machines require -fPIC for shared libraries or libs
-	# linked into shared libraries.
-
-	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${CMAKE_SHARED_LIBRARY_C_FLAGS}")
-	set(CMAKE_CXX_FLAGS
-		"${CMAKE_CXX_FLAGS} ${CMAKE_SHARED_LIBRARY_CXX_FLAGS}")
 endif()
 
 set(SERVER_EXTRA_LIBS)
@@ -353,7 +357,7 @@ option_requires(VRPN_BUILD_PYTHON_HANDCODED_3X
 ###
 # javac, jar, and javah (for java wrapper)
 ###
-if(ANDROID)
+if(ANDROID AND DEFINED find_host_package)
 	find_host_package(Java COMPONENTS Development)
 	find_host_package(JNI)
 	find_host_program(JAVAH_EXECUTABLE NAMES javah)
@@ -450,9 +454,11 @@ if(VRPN_USE_HID)
 	endif()
 else()
 	# Clear this variable if they don't want HID after all.
-	message(STATUS
-		"NOTE: You have VRPN_USE_LOCAL_HIDAPI enabled, but "
-		"VRPN_USE_HID disabled: HIDAPI will only be built if you enable HID support for VRPN")
+	if (VRPN_USE_LOCAL_HIDAPI)
+		message(STATUS
+			"NOTE: You have VRPN_USE_LOCAL_HIDAPI enabled, but "
+			"VRPN_USE_HID disabled: HIDAPI will only be built if you enable HID support for VRPN")
+	endif()
 	set(HIDAPI_SOURCES)
 endif()
 
@@ -547,7 +553,7 @@ option_requires(VRPN_USE_JSONNET
 
 if(VRPN_USE_JSONNET)
 	include_directories(BEFORE ${JSONCPP_INCLUDE_DIRS})
-	list(APPEND SERVER_EXTRA_LIBS ${JSONCPP_LIBRARIES})
+	list(APPEND SERVER_EXTRA_LIBS ${JSONCPP_LIBRARY})
 else()
 	set(JSONCPP_SOURCES)
 endif()
@@ -807,7 +813,7 @@ option(VRPN_USE_PDI
 	"Build with flags to enable the use of Polhemus DVI library."
 	OFF)
 if(VRPN_USE_PDI)
-	find_path(POLHEMUS_PDI_DIR NAMES "Inc" "Lib" PATH_SUFFIXES "PDI_110" "PDI_90" PATHS "C:/Program Files (x86)/Polhemus/PDI" NO_DEFAULT_PATH)
+	find_path(POLHEMUS_PDI_DIR NAMES "Inc" "Lib" PATH_SUFFIXES "PDI_140" "PDI_110" "PDI_90" PATHS "C:/Polhemus/PDI" "C:/Program Files (x86)/Polhemus/PDI" NO_DEFAULT_PATH)
 	include_directories(${POLHEMUS_PDI_DIR}/Inc)
 	if(CMAKE_SIZEOF_VOID_P EQUAL 8)
 		list(APPEND SERVER_EXTRA_LIBS "${POLHEMUS_PDI_DIR}/Lib/x64/PDI.lib")
@@ -968,10 +974,7 @@ endif()
 # to the source code
 configure_file("${PROJECT_SOURCE_DIR}/vrpn_Configure.h.cmake_in"
 	"${PROJECT_BINARY_DIR}/vrpn_Configure.h")
-file(RELATIVE_PATH
-	VRPN_PATH_TO_CMAKE_CONFIG
-	"${CMAKE_CURRENT_SOURCE_DIR}"
-	"${PROJECT_BINARY_DIR}/vrpn_Configure.h")
+set(VRPN_PATH_TO_CMAKE_CONFIG "${PROJECT_BINARY_DIR}/vrpn_Configure.h")
 add_definitions("-DVRPN_USING_CMAKE=\"${VRPN_PATH_TO_CMAKE_CONFIG}\"")
 
 if(SUBPROJECT)
@@ -1158,6 +1161,7 @@ set(VRPN_SERVER_SOURCES
 	vrpn_XInputGamepad.C
 	vrpn_Xkeys.C
 	vrpn_Tracker_LibertyHS.C
+	vrpn_Vality.C
 	vrpn_YEI_3Space.C
 	vrpn_Zaber.C
 	server_src/vrpn_Generic_server_object.C
@@ -1271,6 +1275,7 @@ set(VRPN_SERVER_PUBLIC_HEADERS
 	vrpn_XInputGamepad.h
 	vrpn_Xkeys.h
 	vrpn_Tracker_LibertyHS.h
+	vrpn_Vality.h
 	vrpn_YEI_3Space.h
 	vrpn_Zaber.h
 	server_src/vrpn_Generic_server_object.h)
@@ -1290,6 +1295,11 @@ if(VRPN_BUILD_SERVER_LIBRARY)
 		PROPERTY
 		PUBLIC_HEADER
 		${VRPN_SERVER_PUBLIC_HEADERS})
+	set_property(TARGET
+		vrpnserver
+		PROPERTY
+		SOVERSION
+		0)
 	set_property(TARGET
 		vrpnserver
 		PROPERTY
@@ -1336,6 +1346,11 @@ if(VRPN_BUILD_CLIENT_LIBRARY)
 		PROPERTY
 		PUBLIC_HEADER
 		${VRPN_CLIENT_PUBLIC_HEADERS})
+	set_property(TARGET
+		vrpn
+		PROPERTY
+		SOVERSION
+		0)
 
 	if(NOT VRPN_CLIENT_ONLY)
 		set_property(TARGET

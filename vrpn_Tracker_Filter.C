@@ -61,22 +61,12 @@ vrpn_Tracker_FilterOneEuro::vrpn_Tracker_FilterOneEuro(const char * name, vrpn_C
 {
   // Allocate space for the times.  Fill them in with now.
   d_last_report_times = new struct timeval[channels];
-  if (d_last_report_times == NULL) {
-    fprintf(stderr,"vrpn_Tracker_FilterOneEuro::vrpn_Tracker_FilterOneEuro(): Out of memory\n");
-    d_channels = 0;
-    return;
-  }
-  
+
   vrpn_gettimeofday(&timestamp, NULL);
 
   // Allocate space for the filters.
   d_filters = new vrpn_OneEuroFilterVec[channels];
   d_qfilters = new vrpn_OneEuroFilterQuat[channels];
-  if ( (d_filters == NULL) || (d_qfilters == NULL) ) {
-    fprintf(stderr,"vrpn_Tracker_FilterOneEuro::vrpn_Tracker_FilterOneEuro(): Out of memory\n");
-    d_channels = 0;
-    return;
-  }
 
   // Fill in the parameters for each filter.
   for (int i = 0; i < static_cast<int>(channels); ++i) {
@@ -98,16 +88,26 @@ vrpn_Tracker_FilterOneEuro::vrpn_Tracker_FilterOneEuro(const char * name, vrpn_C
   } else {
     d_listen_tracker = new vrpn_Tracker_Remote(listen_tracker_name);
   }
-  d_listen_tracker->register_change_handler(this, handle_tracker_update);
+  if (d_listen_tracker) d_listen_tracker->register_change_handler(this, handle_tracker_update);
 }
 
 vrpn_Tracker_FilterOneEuro::~vrpn_Tracker_FilterOneEuro()
 {
   d_listen_tracker->unregister_change_handler(this, handle_tracker_update);
-  delete d_listen_tracker;
-  if (d_qfilters) { delete [] d_qfilters; d_qfilters = NULL; }
-  if (d_filters) { delete [] d_filters; d_filters = NULL; }
-  if (d_last_report_times) { delete [] d_last_report_times; d_last_report_times = NULL; }
+  try {
+    delete d_listen_tracker;
+  } catch (...) {
+    fprintf(stderr, "vrpn_Tracker_FilterOneEuro::~vrpn_Tracker_FilterOneEuro(): delete failed\n");
+    return;
+  }
+  try {
+    if (d_qfilters) { delete[] d_qfilters; d_qfilters = NULL; }
+    if (d_filters) { delete[] d_filters; d_filters = NULL; }
+    if (d_last_report_times) { delete[] d_last_report_times; d_last_report_times = NULL; }
+  } catch (...) {
+    fprintf(stderr, "vrpn_Tracker_FilterOneEuro::~vrpn_Tracker_FilterOneEuro(): delete failed\n");
+    return;
+  }
 }
 
 void vrpn_Tracker_FilterOneEuro::mainloop()
@@ -115,8 +115,8 @@ void vrpn_Tracker_FilterOneEuro::mainloop()
   // See if we have anything new from our tracker.
   d_listen_tracker->mainloop();
 
-  // server update
-  vrpn_Tracker::server_mainloop();
+  // Call the server_mainloop on our unique base class.
+  server_mainloop();
 }
 
 vrpn_Tracker_DeadReckoning_Rotation::vrpn_Tracker_DeadReckoning_Rotation(
@@ -138,11 +138,15 @@ vrpn_Tracker_DeadReckoning_Rotation::vrpn_Tracker_DeadReckoning_Rotation(
     // If the name of the tracker we're using starts with a '*' character,
     // we use our own connection to talk with it.  Otherwise, we open a remote
     // tracker with the specified name.
-    if (origTrackerName[0] == '*') {
+    try {
+      if (origTrackerName[0] == '*') {
         d_origTracker = new vrpn_Tracker_Remote(&(origTrackerName.c_str()[1]), c);
-    }
-    else {
+      } else {
         d_origTracker = new vrpn_Tracker_Remote(origTrackerName.c_str());
+      }
+    } catch (...) {
+      d_origTracker = NULL;
+      return;
     }
 
     // Initialize the rotational state of each sensor.  There has not bee
@@ -174,7 +178,12 @@ void vrpn_Tracker_DeadReckoning_Rotation::mainloop()
 
 vrpn_Tracker_DeadReckoning_Rotation::~vrpn_Tracker_DeadReckoning_Rotation()
 {
+  try {
     delete d_origTracker;
+  } catch (...) {
+    fprintf(stderr, "vrpn_Tracker_DeadReckoning_Rotation::~vrpn_Tracker_DeadReckoning_Rotation(): delete failed\n");
+    return;
+  }
 }
 
 void vrpn_Tracker_DeadReckoning_Rotation::sendNewPrediction(vrpn_int32 sensor)
@@ -332,10 +341,6 @@ void vrpn_Tracker_DeadReckoning_Rotation::handle_tracker_velocity_report(void *u
 //===============================================================================
 // Things related to the test() function go below here.
 
-#ifndef M_PI
-#define M_PI  (2*acos(0.0))
-#endif
-
 typedef struct {
     struct timeval  time;
     vrpn_int32  sensor;
@@ -392,14 +397,20 @@ int vrpn_Tracker_DeadReckoning_Rotation::test(void)
     // Create a tracker server to be the initator and a dead-reckoning
     // rotation tracker to use it as a base; have it predict 1 second
     // into the future.
-    vrpn_Tracker_Server *t0 = new vrpn_Tracker_Server("Tracker0", c, 2);
-    vrpn_Tracker_DeadReckoning_Rotation *t1 =
-        new vrpn_Tracker_DeadReckoning_Rotation("Tracker1", c, "*Tracker0", 2, 1);
-
     // Create a remote tracker to listen to t1 and set up its callbacks for
     // position and velocity reports.  They will fill in the static structures
     // listed above with whatever values they receive.
-    vrpn_Tracker_Remote *tr = new vrpn_Tracker_Remote("Tracker1", c);
+    vrpn_Tracker_Server *t0, *t1;
+    vrpn_Tracker_Remote *tr;
+    try {
+      t0 = new vrpn_Tracker_Server("Tracker0", c, 2);
+      t1 = new vrpn_Tracker_DeadReckoning_Rotation("Tracker1", c, "*Tracker0", 2, 1);
+      tr = new vrpn_Tracker_Remote("Tracker1", c);
+    } catch (...) {
+      std::cerr << "vrpn_Tracker_DeadReckoning_Rotation::test: Out of memory" << std::endl;
+      return 100;
+    }
+
     tr->register_change_handler(&poseResponse, handle_test_tracker_report);
     tr->register_change_handler(&velResponse, handle_test_tracker_velocity_report);
 
@@ -441,9 +452,14 @@ int vrpn_Tracker_DeadReckoning_Rotation::test(void)
             << " from sensor " << poseResponse.sensor
             << " at time " << poseResponse.time.tv_sec << ":" << poseResponse.time.tv_usec
             << std::endl;
-        delete tr;
-        delete t1;
-        delete t0;
+        try {
+          delete tr;
+          delete t1;
+          delete t0;
+        } catch (...) {
+          std::cerr << "vrpn_Tracker_DeadReckoning_Rotation::test(): delete failed" << std::endl;
+          return 1;
+        }
         c->removeReference();
         return 1;
     }
@@ -454,7 +470,7 @@ int vrpn_Tracker_DeadReckoning_Rotation::test(void)
     // message that has rotated by very close to 1.4 * 90 degrees.
     q_vec_type pos2 = { 2, 1, 1 };
     q_type quat2;
-    double angle2 = 0.4 * 90 * M_PI / 180.0;
+    double angle2 = 0.4 * 90 * VRPN_PI / 180.0;
     q_from_axis_angle(quat2, 0, 0, 1, angle2);
     struct timeval p4Second = { 0, 400000 };
     struct timeval firstPlusP4 = vrpn_TimevalSum(firstSent, p4Second);
@@ -471,7 +487,7 @@ int vrpn_Tracker_DeadReckoning_Rotation::test(void)
         || (poseResponse.sensor != 0)
         || (q_vec_distance(poseResponse.pos, pos2) > 1e-10)
         || !isClose(x, 0) || !isClose(y, 0) || !isClose(z, 1)
-        || !isClose(angle, 1.4 * 90 * M_PI / 180.0)
+        || !isClose(angle, 1.4 * 90 * VRPN_PI / 180.0)
        )
     {
         std::cerr << "vrpn_Tracker_DeadReckoning_Rotation::test(): Got unexpected"
@@ -481,9 +497,14 @@ int vrpn_Tracker_DeadReckoning_Rotation::test(void)
             << poseResponse.quat[Q_Z] << ", " << poseResponse.quat[Q_W] << ")"
             << " from sensor " << poseResponse.sensor
             << std::endl;
-        delete tr;
-        delete t1;
-        delete t0;
+        try {
+          delete tr;
+          delete t1;
+          delete t0;
+        } catch (...) {
+          std::cerr << "vrpn_Tracker_DeadReckoning_Rotation::test(): delete failed" << std::endl;
+          return 1;
+        }
         c->removeReference();
         return 2;
     }
@@ -506,7 +527,7 @@ int vrpn_Tracker_DeadReckoning_Rotation::test(void)
         || (poseResponse.sensor != 1)
         || (q_vec_distance(poseResponse.pos, pos) > 1e-10)
         || !isClose(x, 0) || !isClose(y, 0) || !isClose(z, 1)
-        || !isClose(angle, 90 * M_PI / 180.0)
+        || !isClose(angle, 90 * VRPN_PI / 180.0)
         )
     {
         std::cerr << "vrpn_Tracker_DeadReckoning_Rotation::test(): Got unexpected"
@@ -516,9 +537,14 @@ int vrpn_Tracker_DeadReckoning_Rotation::test(void)
             << poseResponse.quat[Q_Z] << ", " << poseResponse.quat[Q_W] << ")"
             << " from sensor " << poseResponse.sensor
             << std::endl;
-        delete tr;
-        delete t1;
-        delete t0;
+        try {
+          delete tr;
+          delete t1;
+          delete t0;
+        } catch (...) {
+          std::cerr << "vrpn_Tracker_DeadReckoning_Rotation::test(): delete failed" << std::endl;
+          return 1;
+        }
         c->removeReference();
         return 3;
     }
@@ -532,10 +558,10 @@ int vrpn_Tracker_DeadReckoning_Rotation::test(void)
     struct timeval oneSecond = { 1, 0 };
     struct timeval firstPlusOne = vrpn_TimevalSum(firstSent, oneSecond);
     q_type quat3;
-    q_from_axis_angle(quat3, 1, 0, 0, M_PI);
+    q_from_axis_angle(quat3, 1, 0, 0, VRPN_PI);
     t0->report_pose(1, firstPlusOne, pos, quat3);
     q_type quat4;
-    q_from_axis_angle(quat4, 0, 0, 1, M_PI);
+    q_from_axis_angle(quat4, 0, 0, 1, VRPN_PI);
     t0->report_pose_velocity(1, firstPlusOne, vel, quat4, 1.0);
 
     t0->mainloop();
@@ -548,7 +574,7 @@ int vrpn_Tracker_DeadReckoning_Rotation::test(void)
         || (poseResponse.sensor != 1)
         || (q_vec_distance(poseResponse.pos, pos) > 1e-10)
         || !isClose(x, 0) || !isClose(fabs(y), 1) || !isClose(z, 0)
-        || !isClose(fabs(angle), M_PI)
+        || !isClose(fabs(angle), VRPN_PI)
         )
     {
         std::cerr << "vrpn_Tracker_DeadReckoning_Rotation::test(): Got unexpected"
@@ -558,9 +584,14 @@ int vrpn_Tracker_DeadReckoning_Rotation::test(void)
             << poseResponse.quat[Q_Z] << ", " << poseResponse.quat[Q_W] << ")"
             << " from sensor " << poseResponse.sensor
             << std::endl;
-        delete tr;
-        delete t1;
-        delete t0;
+        try {
+          delete tr;
+          delete t1;
+          delete t0;
+        } catch (...) {
+          std::cerr << "vrpn_Tracker_DeadReckoning_Rotation::test(): delete failed" << std::endl;
+          return 1;
+        }
         c->removeReference();
         return 4;
     }
@@ -576,10 +607,10 @@ int vrpn_Tracker_DeadReckoning_Rotation::test(void)
     // starting at the original time.  We do this on sensor 0, which has never
     // had a velocity report, so that it will be using the pose-only prediction.
     struct timeval firstPlusTwo = vrpn_TimevalSum(firstPlusOne, oneSecond);
-    q_from_axis_angle(quat3, 1, 0, 0, M_PI);
+    q_from_axis_angle(quat3, 1, 0, 0, VRPN_PI);
     t0->report_pose(0, firstSent, pos, quat);
     t0->report_pose(0, firstPlusOne, pos, quat3);
-    q_from_axis_angle(quat4, 0, 0, 1, M_PI / 2);
+    q_from_axis_angle(quat4, 0, 0, 1, VRPN_PI / 2);
     q_type quat5;
     q_mult(quat5, quat4, quat3);
     t0->report_pose(0, firstPlusTwo, pos, quat5);
@@ -594,7 +625,7 @@ int vrpn_Tracker_DeadReckoning_Rotation::test(void)
         || (poseResponse.sensor != 0)
         || (q_vec_distance(poseResponse.pos, pos) > 1e-10)
         || !isClose(x, 0) || !isClose(fabs(y), 1.0) || !isClose(z, 0)
-        || !isClose(fabs(angle), M_PI)
+        || !isClose(fabs(angle), VRPN_PI)
         )
     {
         std::cerr << "vrpn_Tracker_DeadReckoning_Rotation::test(): Got unexpected"
@@ -606,18 +637,28 @@ int vrpn_Tracker_DeadReckoning_Rotation::test(void)
             << "; axis = (" << x << ", " << y << ", " << z << "), angle = "
             << angle
             << std::endl;
-        delete tr;
-        delete t1;
-        delete t0;
+        try {
+          delete tr;
+          delete t1;
+          delete t0;
+        } catch (...) {
+          std::cerr << "vrpn_Tracker_DeadReckoning_Rotation::test(): delete failed" << std::endl;
+          return 1;
+        }
         c->removeReference();
         return 5;
     }
 
     // Done; delete our objects and return 0 to indicate that
     // everything worked.
-    delete tr;
-    delete t1;
-    delete t0;
+    try {
+      delete tr;
+      delete t1;
+      delete t0;
+    } catch (...) {
+      std::cerr << "vrpn_Tracker_DeadReckoning_Rotation::test(): delete failed" << std::endl;
+      return 1;
+    }
     c->removeReference();
     return 0;
 }

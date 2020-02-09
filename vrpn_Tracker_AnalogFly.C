@@ -1,14 +1,10 @@
-#include <math.h>                       // for M_PI, pow, fabs
+#include <math.h>                       // for pow, fabs
 
 #include "quat.h"                       // for q_xyz_quat_type, etc
 #include "vrpn_Connection.h"            // for vrpn_Connection, etc
 #include "vrpn_Tracker_AnalogFly.h"
 
 #undef	VERBOSE
-
-#ifndef	M_PI
-#define M_PI		3.14159265358979323846
-#endif
 
 vrpn_Tracker_AnalogFly::vrpn_Tracker_AnalogFly
          (const char * name, vrpn_Connection * trackercon,
@@ -66,12 +62,20 @@ vrpn_Tracker_AnalogFly::vrpn_Tracker_AnalogFly
 		// If the name starts with the '*' character, use
                 // the server connection rather than making a new one.
 		if (params->reset_name[0] == '*') {
-			d_reset_button = new vrpn_Button_Remote
-                               (&(params->reset_name[1]),
-				d_connection);
+                  try {
+                    d_reset_button = new vrpn_Button_Remote
+                    (&(params->reset_name[1]),
+                      d_connection);
+                  } catch (...) {
+                    d_reset_button = NULL;
+                  }
 		} else {
-			d_reset_button = new vrpn_Button_Remote
-                               (params->reset_name);
+                  try {
+		    d_reset_button = new vrpn_Button_Remote
+                      (params->reset_name);
+                  } catch (...) {
+                    d_reset_button = NULL;
+                  }
 		}
 		if (d_reset_button == NULL) {
 			fprintf(stderr,"vrpn_Tracker_AnalogFly: "
@@ -96,12 +100,20 @@ vrpn_Tracker_AnalogFly::vrpn_Tracker_AnalogFly
 		// If the name starts with the '*' character, use
                 // the server connection rather than making a new one.
 		if (params->clutch_name[0] == '*') {
-			d_clutch_button = new vrpn_Button_Remote
+                  try {
+                    d_clutch_button = new vrpn_Button_Remote
                                (&(params->clutch_name[1]),
 				d_connection);
-		} else {
-			d_clutch_button = new vrpn_Button_Remote
+                  } catch (...) {
+                    d_clutch_button = NULL;
+                  }
+                } else {
+                  try {
+                    d_clutch_button = new vrpn_Button_Remote
                                (params->clutch_name);
+                  } catch (...) {
+                    d_clutch_button = NULL;
+                  }
 		}
 		if (d_clutch_button == NULL) {
 			fprintf(stderr,"vrpn_Tracker_AnalogFly: "
@@ -167,14 +179,24 @@ vrpn_Tracker_AnalogFly::~vrpn_Tracker_AnalogFly (void)
 	if (d_reset_button != NULL) {
 		d_reset_button->unregister_change_handler(this,
                                         handle_reset_press);
-		delete d_reset_button;
+                try {
+                  delete d_reset_button;
+                } catch (...) {
+                  fprintf(stderr, "vrpn_Tracker_AnalogFly::~vrpn_Tracker_AnalogFly(): delete failed\n");
+                  return;
+                }
 	}
 
 	// Tear down the clutch button update callback and remote (if there is one)
 	if (d_clutch_button != NULL) {
 		d_clutch_button->unregister_change_handler(this,
                                         handle_clutch_press);
-		delete d_clutch_button;
+                try {
+                  delete d_clutch_button;
+                } catch (...) {
+                  fprintf(stderr, "vrpn_Tracker_AnalogFly::~vrpn_Tracker_AnalogFly(): delete failed\n");
+                  return;
+                }
 	}
 }
 
@@ -257,14 +279,19 @@ int	vrpn_Tracker_AnalogFly::setup_channel(vrpn_TAF_fullaxis *full)
 	// If the name starts with the '*' character, use the server
         // connection rather than making a new one.
 	if (full->axis.name[0] == '*') {
-		full->ana = new vrpn_Analog_Remote(&(full->axis.name[1]),
-                      d_connection);
+          try {
+            full->ana = new vrpn_Analog_Remote(&(full->axis.name[1]),
+              d_connection);
+          } catch (...) { full->ana = NULL; }
 #ifdef	VERBOSE
 		printf("vrpn_Tracker_AnalogFly: Adding local analog %s\n",
                           &(full->axis.name[1]));
 #endif
 	} else {
-		full->ana = new vrpn_Analog_Remote(full->axis.name);
+          try {
+            full->ana = new vrpn_Analog_Remote(full->axis.name);
+          } catch (...) { full->ana = NULL; }
+
 #ifdef	VERBOSE
 		printf("vrpn_Tracker_AnalogFly: Adding remote analog %s\n",
                           full->axis.name);
@@ -295,7 +322,12 @@ int	vrpn_Tracker_AnalogFly::teardown_channel(vrpn_TAF_fullaxis *full)
                           handle_analog_update);
 
 	// Delete the analog device.
-	delete full->ana;
+        try {
+          delete full->ana;
+        } catch (...) {
+          fprintf(stderr, "vrpn_Tracker_AnalogFly::teardown_channel(): delete failed\n");
+          return -1;
+        }
 
 	return ret;
 }
@@ -425,9 +457,9 @@ void	vrpn_Tracker_AnalogFly::update_matrix_based_on_values
   ty = d_y.value * time_interval;
   tz = d_z.value * time_interval;
   
-  rx = d_sx.value * time_interval * (2*M_PI);
-  ry = d_sy.value * time_interval * (2*M_PI);
-  rz = d_sz.value * time_interval * (2*M_PI);
+  rx = d_sx.value * time_interval * (2*VRPN_PI);
+  ry = d_sy.value * time_interval * (2*VRPN_PI);
+  rz = d_sz.value * time_interval * (2*VRPN_PI);
 
   // Build a rotation matrix, then add in the translation
   q_euler_to_col_matrix(diffM, rz, ry, rx);

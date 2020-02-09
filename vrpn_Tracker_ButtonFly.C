@@ -1,16 +1,12 @@
 //XXX Send velocity and rotational velocity reports.
 
-#include <math.h>                       // for pow, M_PI, fabs
+#include <math.h>                       // for pow, fabs
 
 #include "quat.h"                       // for q_matrix_copy, etc
 #include "vrpn_Connection.h"            // for vrpn_Connection, etc
 #include "vrpn_Tracker_ButtonFly.h"
 
 #undef	VERBOSE
-
-#ifndef	M_PI
-#define M_PI		3.14159265358979323846
-#endif
 
 vrpn_Tracker_ButtonFly::vrpn_Tracker_ButtonFly
          (const char * name, vrpn_Connection * trackercon,
@@ -56,10 +52,14 @@ vrpn_Tracker_ButtonFly::vrpn_Tracker_ButtonFly
     // If the name starts with the '*' character, use
     // the server connection rather than making a new one.
     if (params->vel_scale_name[0] == '*') {
-      d_vel_scale = new vrpn_Analog_Remote
-             (&(params->vel_scale_name[1]), d_connection);
+      try {
+        d_vel_scale = new vrpn_Analog_Remote
+        (&(params->vel_scale_name[1]), d_connection);
+      } catch (...) { d_vel_scale = NULL; }
     } else {
-      d_vel_scale = new vrpn_Analog_Remote(params->vel_scale_name);
+      try {
+        d_vel_scale = new vrpn_Analog_Remote(params->vel_scale_name);
+        } catch (...) { d_vel_scale = NULL; }
     }
 
     // Set up the callback handler
@@ -84,10 +84,14 @@ vrpn_Tracker_ButtonFly::vrpn_Tracker_ButtonFly
     // If the name starts with the '*' character, use
     // the server connection rather than making a new one.
     if (params->rot_scale_name[0] == '*') {
-      d_rot_scale = new vrpn_Analog_Remote
-             (&(params->rot_scale_name[1]), d_connection);
+      try {
+        d_rot_scale = new vrpn_Analog_Remote
+        (&(params->rot_scale_name[1]), d_connection);
+      } catch (...) { d_rot_scale = NULL; }
     } else {
-      d_rot_scale = new vrpn_Analog_Remote(params->rot_scale_name);
+      try {
+        d_rot_scale = new vrpn_Analog_Remote(params->rot_scale_name);
+      } catch (...) { d_rot_scale = NULL; }
     }
 
     // Set up the callback handler
@@ -133,11 +137,21 @@ vrpn_Tracker_ButtonFly::~vrpn_Tracker_ButtonFly (void)
   // Tear down the analog update callbacks and remotes (if they exist)
   if (d_vel_scale != NULL) {
     d_vel_scale->unregister_change_handler(this, handle_velocity_update);
-    delete d_vel_scale;
+    try {
+      delete d_vel_scale;
+    } catch (...) {
+      fprintf(stderr, "vrpn_Tracker_ButtonFly::~vrpn_Tracker_ButtonFly(): delete failed\n");
+      return;
+    }
   }
   if (d_rot_scale != NULL) {
     d_rot_scale->unregister_change_handler(this, handle_rotation_update);
-    delete d_rot_scale;
+    try {
+      delete d_rot_scale;
+    } catch (...) {
+      fprintf(stderr, "vrpn_Tracker_ButtonFly::~vrpn_Tracker_ButtonFly(): delete failed\n");
+      return;
+    }
   }
 }
 
@@ -151,14 +165,18 @@ int	vrpn_Tracker_ButtonFly::setup_channel(vrpn_TBF_fullaxis *full)
   // If the name starts with the '*' character, use the server
   // connection rather than making a new one.
   if (full->axis.name[0] == '*') {
-    full->btn = new vrpn_Button_Remote(&(full->axis.name[1]),
+    try {
+      full->btn = new vrpn_Button_Remote(&(full->axis.name[1]),
           d_connection);
+    } catch (...) { full->btn = NULL; }
 #ifdef	VERBOSE
     printf("vrpn_Tracker_ButtonFly: Adding local button %s\n",
               &(full->axis.name[1]));
 #endif
   } else {
-    full->btn = new vrpn_Button_Remote(full->axis.name);
+    try {
+      full->btn = new vrpn_Button_Remote(full->axis.name);
+    } catch (...) { full->btn = NULL; }
 #ifdef	VERBOSE
     printf("vrpn_Tracker_ButtonFly: Adding remote button %s\n",
               full->axis.name);
@@ -188,7 +206,12 @@ int	vrpn_Tracker_ButtonFly::teardown_channel(vrpn_TBF_fullaxis *full)
   ret = full->btn->unregister_change_handler((void*)full, handle_button_update);
 
   // Delete the analog device and point the remote at it.
-  delete full->btn;
+  try {
+    delete full->btn;
+  } catch (...) {
+    fprintf(stderr, "vrpn_Tracker_ButtonFly::teardown_channel(): delete failed\n");
+    return -1;
+  }
 
   return ret;
 }
@@ -273,9 +296,9 @@ void vrpn_Tracker_ButtonFly::handle_button_update
       ty = axis->axis.vec[1];
       tz = axis->axis.vec[2];
 
-      rx = axis->axis.rot[0] * (2*M_PI);
-      ry = axis->axis.rot[1] * (2*M_PI);
-      rz = axis->axis.rot[2] * (2*M_PI);
+      rx = axis->axis.rot[0] * (2*VRPN_PI);
+      ry = axis->axis.rot[1] * (2*VRPN_PI);
+      rz = axis->axis.rot[2] * (2*VRPN_PI);
 
       // Build a rotation matrix, then add in the translation
       q_euler_to_col_matrix(newMatrix, rz, ry, rx);
@@ -419,9 +442,9 @@ void	vrpn_Tracker_ButtonFly::update_matrix_based_on_values
       ty += d_axes[i].axis.vec[1] * time_interval * d_vel_scale_value;
       tz += d_axes[i].axis.vec[2] * time_interval * d_vel_scale_value;
   
-      rx = d_axes[i].axis.rot[0] * time_interval * (2*M_PI) * d_rot_scale_value;
-      ry = d_axes[i].axis.rot[1] * time_interval * (2*M_PI) * d_rot_scale_value;
-      rz = d_axes[i].axis.rot[2] * time_interval * (2*M_PI) * d_rot_scale_value;
+      rx = d_axes[i].axis.rot[0] * time_interval * (2*VRPN_PI) * d_rot_scale_value;
+      ry = d_axes[i].axis.rot[1] * time_interval * (2*VRPN_PI) * d_rot_scale_value;
+      rz = d_axes[i].axis.rot[2] * time_interval * (2*VRPN_PI) * d_rot_scale_value;
     }
   }
 

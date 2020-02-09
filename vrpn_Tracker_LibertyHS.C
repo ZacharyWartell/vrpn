@@ -7,7 +7,7 @@
 #include <ctype.h>                      // for isprint
 #include <stdio.h>                      // for fprintf, stderr, sprintf, etc
 #include <stdlib.h>                     // for atoi
-#include <string.h>                     // for strlen, strncpy, strtok
+#include <string.h>                     // for strlen, strtok
 
 #include "quat.h"                       // for Q_W, Q_X, Q_Y, Q_Z
 #include "vrpn_BaseClass.h"             // for ::vrpn_TEXT_WARNING, etc
@@ -23,7 +23,6 @@ VRPN_SUPPRESS_EMPTY_OBJECT_WARNING()
 
 #include <libusb.h>                     // for libusb_bulk_transfer, etc
 
-#define	INCHES_TO_METERS	(2.54f/100.0f)
 static const bool VRPN_LIBERTYHS_METRIC_UNITS = true;
 static const bool VRPN_LIBERTYHS_DEBUG = false;  // General Debug Messages
 static const bool VRPN_LIBERTYHS_DEBUGA = false; // Only errors
@@ -42,7 +41,7 @@ vrpn_Tracker_LibertyHS::vrpn_Tracker_LibertyHS(const char *name, vrpn_Connection
 	if (additional_reset_commands == NULL) {
 		add_reset_cmd[0] = '\0';
 	} else {
-		strncpy(add_reset_cmd, additional_reset_commands, sizeof(add_reset_cmd)-1);
+		vrpn_strcpy(add_reset_cmd, additional_reset_commands);
 	}
 
 	if (VRPN_LIBERTYHS_DEBUG) fprintf(stderr,"[DEBUG] Constructed LibertyHS Object\n");
@@ -363,7 +362,7 @@ void vrpn_Tracker_LibertyHS::reset()
 	printf("  LibertyHS writing extended reset commands...\n");
 
 	// Make a copy of the additional reset string, since it is consumed
-	strncpy(add_cmd_copy, add_reset_cmd, sizeof(add_cmd_copy));
+        vrpn_strcpy(add_cmd_copy, add_reset_cmd);
 
 	// Pass through the string, testing each line to see if it is
 	// a sleep command or a line to send to the tracker. Continue until
@@ -620,7 +619,7 @@ int vrpn_Tracker_LibertyHS::get_report(void)
 
      // When copying the positions, convert from inches to meters, since the
      // LibertyHS reports in inches and VRPN reports in meters.
-     float convFactor = VRPN_LIBERTYHS_METRIC_UNITS ? 1.0f : INCHES_TO_METERS;
+     float convFactor = VRPN_LIBERTYHS_METRIC_UNITS ? 1.0f : VRPN_INCHES_TO_METERS;
      pos[0] = vrpn_unbuffer_from_little_endian<vrpn_float32>(bufptr) * convFactor;
      pos[1] = vrpn_unbuffer_from_little_endian<vrpn_float32>(bufptr) * convFactor;
      pos[2] = vrpn_unbuffer_from_little_endian<vrpn_float32>(bufptr) * convFactor;

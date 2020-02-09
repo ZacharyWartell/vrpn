@@ -55,7 +55,12 @@ vrpn_Tracker_G4::~vrpn_Tracker_G4(void){
 
 	if (m_pHMap)
 	{
-		delete m_pHMap;
+          try {
+            delete m_pHMap;
+          } catch (...) {
+            fprintf(stderr, "vrpn_Tracker_G4::~vrpn_Tracker_G4(): delete failed\n");
+            return;
+          }
 	}
 }
 
@@ -136,8 +141,8 @@ BOOL vrpn_Tracker_G4::InitDigIOBtns()
 		{
 			if (pHub->nBtnCount)
 			{
-				pHub->pBtnSrv = new vrpn_Button_Server(pHub->BtnName, d_connection, pHub->nBtnCount );
-				if (pHub->pBtnSrv == NULL)
+				try { pHub->pBtnSrv = new vrpn_Button_Server(pHub->BtnName, d_connection, pHub->nBtnCount ); }
+				catch (...)
 				{
 					cout << "Cannot create button device " << pHub->BtnName << endl;
 					bRet = FALSE;
@@ -202,6 +207,8 @@ BOOL vrpn_Tracker_G4::SetupDevice( VOID )
 	pdiG4.SetPNOPosUnits( PosUnits );
 
 	pdiG4.SetPnoBuffer( pMotionBuf, VRPN_PDI_BUFFER_SIZE );
+	pLastBuf = 0;
+	dwLastSize = 0;
 	
 	//pdiG4.StartPipeExport();
 	UpdateStationMap();
@@ -522,7 +529,7 @@ void vrpn_Tracker_G4::DoFilterCmd(char *scmd)
 			break;
 
 		default:
-			printf("\tERROR: Unrecognized Filter Action: %c\r\n", pAct);
+			printf("\tERROR: Unrecognized Filter Action: %c\r\n", *pAct);
 			break;
 		}
 
@@ -649,7 +656,7 @@ void vrpn_Tracker_G4::DoFORCmd( char *scmd )
 			break;
 
 		default:
-			printf("\tERROR: Unrecognized Frame Of Reference Action: %c\r\n", pAct);
+			printf("\tERROR: Unrecognized Frame Of Reference Action: %c\r\n", *pAct);
 			break;
 		}
 
@@ -913,9 +920,6 @@ BOOL vrpn_Tracker_G4::DisplayCont( timeval ct )
 
 	PBYTE pBuf;
 	DWORD dwSize;
-	PBYTE pLastBuf = 0;
-	DWORD dwLastSize = 0;
-
 
 	if (!(pdiG4.LastPnoPtr(pBuf, dwSize)))
 	{
@@ -1083,8 +1087,14 @@ vrpn_Tracker_FastrakPDI::~vrpn_Tracker_FastrakPDI(void)
 
 	  for (int i=0; i<FT_MAX_SENSORS; i++)
 	  {
-		  if (FTstylusBtns[i])
-			  delete FTstylusBtns[i];
+            if (FTstylusBtns[i]) {
+              try {
+                delete FTstylusBtns[i];
+              } catch (...) {
+                fprintf(stderr, "vrpn_Tracker_FastrakPDI::~vrpn_Tracker_FastrakPDI(): delete failed\n");
+                return;
+              }
+            }
 	  }
   }
 
@@ -1165,8 +1175,8 @@ BOOL vrpn_Tracker_FastrakPDI::InitStylusBtns()
 		{
 			char btnName[512];
 			sprintf( btnName, "%sStylus%d", d_servicename, i+1);
-			FTstylusBtns[i] = new vrpn_Button_Server( btnName, d_connection, 1 );
-			if (FTstylusBtns[i] == NULL)
+			try { FTstylusBtns[i] = new vrpn_Button_Server( btnName, d_connection, 1 ); }
+			catch (...)
 			{
 				cout << "Cannot create button device " << btnName << endl;
 				bRet = FALSE;
@@ -1238,6 +1248,8 @@ BOOL vrpn_Tracker_FastrakPDI::Connect( VOID )
 		isBinary = TRUE;
 
 		pdiDev.SetPnoBuffer( pMotionBuf, VRPN_PDI_BUFFER_SIZE );
+		pLastBuf = 0;
+		dwLastSize = 0;
 
 		bCnxReady = pdiDev.CnxReady();
 	}
@@ -1477,8 +1489,6 @@ BOOL vrpn_Tracker_FastrakPDI::DisplayCont( timeval ct )
 
 	PBYTE pBuf;
 	DWORD dwSize;
-	PBYTE pLastBuf = 0;
-	DWORD dwLastSize = 0;
 
 	if (!(pdiDev.LastPnoPtr(pBuf, dwSize)))
 	{
@@ -1645,8 +1655,14 @@ vrpn_Tracker_LibertyPDI::~vrpn_Tracker_LibertyPDI(void){
 
 	  for (int i=0; i<LIBERTY_MAX_SENSORS; i++)
 	  {
-		  if (StylusBtns[i])
-			  delete StylusBtns[i];
+            if (StylusBtns[i]) {
+              try {
+                delete StylusBtns[i];
+              } catch (...) {
+                fprintf(stderr, "vrpn_Tracker_LibertyPDI::~vrpn_Tracker_LibertyPDI(): delete failed\n");
+                return;
+              }
+            }
 	  }
   }
 
@@ -1727,8 +1743,8 @@ BOOL vrpn_Tracker_LibertyPDI::InitStylusBtns()
 		{
 			char btnName[512];
 			sprintf( btnName, "%sStylus%d", d_servicename, i+1);
-			StylusBtns[i] = new vrpn_Button_Server( btnName, d_connection, 1 );
-			if (StylusBtns[i] == NULL)
+			try { StylusBtns[i] = new vrpn_Button_Server( btnName, d_connection, 1 ); }
+			catch (...)
 			{
 				cout << "Cannot create button device " << btnName << endl;
 				bRet = FALSE;
@@ -1803,6 +1819,8 @@ BOOL vrpn_Tracker_LibertyPDI::Connect( VOID )
 		// The CPDIdev class will use this space, even if we don't access it directly,
 		// which allows us to specify the size of the buffer
 		pdiDev.SetPnoBuffer( pMotionBuf, VRPN_PDI_BUFFER_SIZE );
+		pLastBuf = 0;
+		dwLastSize = 0;
 
 		bCnxReady = pdiDev.CnxReady();
 	}
@@ -2092,8 +2110,6 @@ BOOL vrpn_Tracker_LibertyPDI::DisplayCont( timeval ct )
 
 	PBYTE pBuf;
 	DWORD dwSize;
-	PBYTE pLastBuf = 0;
-	DWORD dwLastSize = 0;
 
 	if (!(pdiDev.LastPnoPtr(pBuf, dwSize)))
 	{
