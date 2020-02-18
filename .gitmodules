@@ -5,3 +5,6 @@
 [submodule "submodules/jsoncpp"]
 	path = submodules/jsoncpp
 	url = https://github.com/vrpn/jsoncpp.git
+[submodule "submodules/LeapSDK"]
+	path = submodules/LeapSDK
+	url = https://cci-git.uncc.edu/UNCC_Graphics/LeapSDK.git
