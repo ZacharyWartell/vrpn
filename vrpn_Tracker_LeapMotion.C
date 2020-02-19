@@ -76,7 +76,7 @@ vrpn_Tracker_LeapMotion::vrpn_Tracker_LeapMotion(const char *name,
 }
 
 /*
-@uathor Zachary Wartell
+@author Zachary Wartell
 @brief
 
 - Stage I - copy code from vrpn_Tracker_NULL
@@ -173,6 +173,45 @@ void vrpn_Tracker_LeapMotion::mainloop()
 @author Zachary Wartell
 @brief
 
+@todo this is unimplemented, just copied scaffolding code from vprn_Tracker.C
+
+- Stage I - copy code from vrpn_Tracker.C
+*/
+int vrpn_Tracker_LeapMotion::read_config_file(FILE* config_file,
+                                                  const char* tracker_name)
+{
+
+    char line[512]; // line read from input file
+    //vrpn_int32 num_sens;
+    //vrpn_int32 which_sensor;
+    //float f[14];
+    //int i, j;
+
+    // Read lines from the file until we run out
+    while (fgets(line, sizeof(line), config_file) != NULL) {
+        // Make sure the line wasn't too long
+        if (strlen(line) >= sizeof(line) - 1) {
+            fprintf(stderr, "Line too long in config file: %s\n", line);
+            return -1;
+        }
+        // find tracker name in file
+        if ((!(strncmp(line, tracker_name, strlen(tracker_name)))) &&
+            (isspace(line[strlen(tracker_name)]))) {
+            
+            /**
+            \todo Add LeapMotion specific config file items
+            */
+            return 0; // success
+        }
+    }
+    fprintf(stderr, "Error reading or %s not found in config file\n",
+            tracker_name);
+    return -1;
+}
+/*
+@author Zachary Wartell
+@brief
+
 - Stage I - copy code from vrpn_Tracker_NULL
 */
 void vrpn_Tracker_LeapMotion::setRedundantTransmission(
@@ -196,7 +235,7 @@ static const std::string stateNames[] = {"STATE_INVALID", "STATE_START",
 
 
 /*
-BEGIN COPY FROM Leap SDK Sample.cpp
+BEGIN COPY AND NODIFIY FROM Leap SDK Sample.cpp
 */
 void vrpn_Tracker_LeapMotion::Listener::onInit(const Leap::Controller& controller)
 {
@@ -282,6 +321,9 @@ void vrpn_Tracker_LeapMotion::Listener::onFrame(const Leap::Controller& controll
         }
     }
 
+
+    // TODO: ZJW - probably leave this out for VRPN
+
     // Get tools
     const Leap::ToolList tools = frame.tools();
     for (Leap::ToolList::const_iterator tl = tools.begin(); tl != tools.end();
@@ -291,6 +333,8 @@ void vrpn_Tracker_LeapMotion::Listener::onFrame(const Leap::Controller& controll
                   << ", position: " << tool.tipPosition()
                   << ", direction: " << tool.direction() << std::endl;
     }
+
+    // TODO: ZJW - probably leave this out or VRPN or convert to VRPN Button "event"?
 
     // Get gestures
     const Leap::GestureList gestures = frame.gestures();
@@ -395,5 +439,5 @@ void vrpn_Tracker_LeapMotion::Listener::onServiceDisconnect(const Leap::Controll
     std::cout << "Service Disconnected" << std::endl;
 }
 /*
-END COPY FROM Leap SDK Sample.cpp
+END COPY AND NODIFIY FROM Leap SDK Sample.cpp
 */

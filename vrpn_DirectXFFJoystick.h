@@ -11,6 +11,7 @@
 #include "vrpn_Connection.h"
 #include "vrpn_Analog.h"
 #include "vrpn_Button.h"
+
 #include "vrpn_ForceDevice.h"
 #include "vrpn_ForceDeviceServer.h"
 
@@ -237,4 +238,3 @@ protected:
 
 #endif
 #endif
-

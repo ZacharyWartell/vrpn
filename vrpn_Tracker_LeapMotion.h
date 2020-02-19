@@ -39,13 +39,25 @@ public:
 
     void setRedundantTransmission(vrpn_RedundantTransmission *);
 
+    enum struct Finger {
+        Thumb,Index, Middle,Ring, Pinky        
+    };
+    enum struct Bone 
+    {
+        Metacarpal, Proximal, Middle, Distal
+    };
+    
+
 protected:
     vrpn_float64 update_rate;
 
     vrpn_RedundantTransmission *d_redundancy;
 
 private:
-    class Listener : public Leap::Listener {
+
+    int read_config_file(FILE *config_file, const char *tracker_name);
+
+    class VRPN_API Listener : public Leap::Listener {
     public:
         virtual void onInit(const Leap::Controller &);
         virtual void onConnect(const Leap::Controller &);
