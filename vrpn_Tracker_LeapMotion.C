@@ -45,6 +45,39 @@ Stage I - copy code from vrpn_Tracker_NULL
 #undef main
 #endif
 
+static const std::string fingerNames[] = {"Thumb", "Index", "Middle", "Ring",
+                                          "Pinky"};
+static const std::string boneNames[] = {"Metacarpal", "Proximal", "Middle",
+                                        "Distal"};
+static const std::string stateNames[] = {"STATE_INVALID", "STATE_START",
+                                         "STATE_UPDATE", "STATE_END"};
+
+
+
+vrpn_Tracker_LeapMotion::Hand::Hand() 
+{
+    thumbMetacarpal.child = &thumbProximal;
+    thumbProximal.child = &thumbMiddle;
+    thumbMiddle.child = &thumbDistal;
+
+    indexMetacarpal.child = &indexProximal;
+    indexProximal.child = &indexMiddle;
+    indexMiddle.child = &indexDistal;
+
+    middleMetacarpal.child = &middleProximal;
+    middleProximal.child = &middleMiddle;
+    middleMiddle.child = &middleDistal;
+
+    ringMetacarpal.child = &ringProximal;
+    ringProximal.child = &ringMiddle;
+    ringMiddle.child = &ringDistal;
+
+    pinkyMetacarpal.child = &pinkyProximal;
+    pinkyProximal.child = &pinkyMiddle;
+    pinkyMiddle.child = &pinkyDistal;
+}
+
+
 /*
 @uathor Zachary Wartell
 @brief
@@ -59,12 +92,14 @@ vrpn_Tracker_LeapMotion::vrpn_Tracker_LeapMotion(const char *name,
     , update_rate(Hz)
     , d_redundancy(NULL)
 {
-    num_sensors = sensors;
+    //num_sensors = sensors;
+    num_sensors = 2 * Hand::HAND_SENSORS;
+                                   
     register_server_handlers();
 
-    // Create a sample listener and controller
 
     // Have the sample listener receive events from the controller
+    listener.vrpnTracker = this;
     controller.addListener(listener);
 
 #if 0
@@ -83,7 +118,6 @@ vrpn_Tracker_LeapMotion::vrpn_Tracker_LeapMotion(const char *name,
 */
 void vrpn_Tracker_LeapMotion::mainloop()
 {
-    {
         struct timeval current_time;
         char msgbuf[1000];
         vrpn_int32 i, len;
@@ -105,6 +139,10 @@ void vrpn_Tracker_LeapMotion::mainloop()
                 for (i = 0; i < num_sensors; i++) {
                     d_sensor = i;
 
+                    const vrpn_CoordinateSystem& sensorCS = bySensorID(i);
+                    q_vec_copy(pos, sensorCS.location);
+                    q_vec_copy(d_quat, sensorCS.location);
+
                     // Pack position report
                     len = encode_to(msgbuf);
                     if (d_redundancy->pack_message(
@@ -113,30 +151,17 @@ void vrpn_Tracker_LeapMotion::mainloop()
                         fprintf(stderr,
                                 "NULL tracker: can't write message: tossing\n");
                     }
-
-                    // Pack velocity report
-                    len = encode_vel_to(msgbuf);
-                    if (d_redundancy->pack_message(
-                            len, timestamp, velocity_m_id, d_sender_id, msgbuf,
-                            vrpn_CONNECTION_LOW_LATENCY)) {
-                        fprintf(stderr,
-                                "NULL tracker: can't write message: tossing\n");
-                    }
-
-                    // Pack acceleration report
-                    len = encode_acc_to(msgbuf);
-                    if (d_redundancy->pack_message(
-                            len, timestamp, accel_m_id, d_sender_id, msgbuf,
-                            vrpn_CONNECTION_LOW_LATENCY)) {
-                        fprintf(stderr,
-                                "NULL tracker: can't write message: tossing\n");
-                    }
+            
                 }
             }
             else if (d_connection) {
                 for (i = 0; i < num_sensors; i++) {
                     d_sensor = i;
 
+                    const vrpn_CoordinateSystem& sensorCS = bySensorID(i);
+                    q_vec_copy(pos, sensorCS.location);
+                    q_vec_copy(d_quat, sensorCS.location);
+
                     // Pack position report
                     len = encode_to(msgbuf);
                     if (d_connection->pack_message(
@@ -145,28 +170,10 @@ void vrpn_Tracker_LeapMotion::mainloop()
                         fprintf(stderr,
                                 "NULL tracker: can't write message: tossing\n");
                     }
-
-                    // Pack velocity report
-                    len = encode_vel_to(msgbuf);
-                    if (d_connection->pack_message(
-                            len, timestamp, velocity_m_id, d_sender_id, msgbuf,
-                            vrpn_CONNECTION_LOW_LATENCY)) {
-                        fprintf(stderr,
-                                "NULL tracker: can't write message: tossing\n");
-                    }
-
-                    // Pack acceleration report
-                    len = encode_acc_to(msgbuf);
-                    if (d_connection->pack_message(
-                            len, timestamp, accel_m_id, d_sender_id, msgbuf,
-                            vrpn_CONNECTION_LOW_LATENCY)) {
-                        fprintf(stderr,
-                                "NULL tracker: can't write message: tossing\n");
-                    }
                 }
+
             }
-        }
-    }
+        }        
 }
 
 /*
@@ -227,11 +234,6 @@ vrpn_Tracker_LeapMotion::~vrpn_Tracker_LeapMotion()
 }
 
 
-static const std::string fingerNames[] = {"Thumb", "Index", "Middle", "Ring", "Pinky"};
-static const std::string boneNames[] = {"Metacarpal", "Proximal", "Middle",
-                                        "Distal"};
-static const std::string stateNames[] = {"STATE_INVALID", "STATE_START",
-                                  "STATE_UPDATE", "STATE_END"};
 
 
 /*
@@ -277,46 +279,68 @@ void vrpn_Tracker_LeapMotion::Listener::onFrame(const Leap::Controller& controll
     for (Leap::HandList::const_iterator hl = hands.begin(); hl != hands.end();
          ++hl) {
         // Get the first hand
-        const Leap::Hand hand = *hl;
+        const Leap::Hand hand = *hl;        
         std::string handType = hand.isLeft() ? "Left hand" : "Right hand";
-        std::cout << std::string(2, ' ') << handType << ", id: " << hand.id()
-                  << ", palm position: " << hand.palmPosition() << std::endl;
+        vrpn_Tracker_LeapMotion::Hand& vprnHand =
+            hand.isLeft() ? vrpnTracker->leftHand : vrpnTracker->rightHand;
+
+        if (vrpnTracker->debugOutput)
+            std::cout << std::string(2, ' ') << handType << ", id: " << hand.id()
+                      << ", palm position: " << hand.palmPosition() << std::endl;
         // Get the hand's normal vector and direction
         const Leap::Vector normal = hand.palmNormal();
         const Leap::Vector direction = hand.direction();
 
         // Calculate the hand's pitch, roll, and yaw angles
-        std::cout << std::string(2, ' ')
-                  << "pitch: " << direction.pitch() * Leap::RAD_TO_DEG << " degrees, "
-                  << "roll: " << normal.roll() * Leap::RAD_TO_DEG
-                  << " degrees, "
-                  << "yaw: " << direction.yaw() * Leap::RAD_TO_DEG << " degrees"
-                  << std::endl;
+        if (vrpnTracker->debugOutput)
+            std::cout << std::string(2, ' ')
+                      << "pitch: " << direction.pitch() * Leap::RAD_TO_DEG << " degrees, "
+                      << "roll: " << normal.roll() * Leap::RAD_TO_DEG
+                      << " degrees, "
+                      << "yaw: " << direction.yaw() * Leap::RAD_TO_DEG << " degrees"
+                      << std::endl;
 
         // Get the Arm bone
         Leap::Arm arm = hand.arm();
-        std::cout << std::string(2, ' ') << "Arm direction: " << arm.direction()
-                  << " wrist position: " << arm.wristPosition()
-                  << " elbow position: " << arm.elbowPosition() << std::endl;
+        if (vrpnTracker->debugOutput)
+            std::cout << std::string(2, ' ') << "Arm direction: " << arm.direction()
+                      << " wrist position: " << arm.wristPosition()
+                      << " elbow position: " << arm.elbowPosition() << std::endl;
 
         // Get fingers
         const Leap::FingerList fingers = hand.fingers();
         for (Leap::FingerList::const_iterator fl = fingers.begin();
              fl != fingers.end(); ++fl) {
             const Leap::Finger finger = *fl;
-            std::cout << std::string(4, ' ') << fingerNames[finger.type()]
-                      << " finger, id: " << finger.id()
-                      << ", length: " << finger.length()
-                      << "mm, width: " << finger.width() << std::endl;
+            if (vrpnTracker->debugOutput)
+                std::cout << std::string(4, ' ') << fingerNames[finger.type()]
+                          << " finger, id: " << finger.id()
+                          << ", length: " << finger.length()
+                          << "mm, width: " << finger.width() << std::endl;
 
             // Get finger bones
             for (int b = 0; b < 4; ++b) {
                 Leap::Bone::Type boneType = static_cast<Leap::Bone::Type>(b);
                 Leap::Bone bone = finger.bone(boneType);
-                std::cout << std::string(6, ' ') << boneNames[boneType]
-                          << " bone, start: " << bone.prevJoint()
-                          << ", end: " << bone.nextJoint()
-                          << ", direction: " << bone.direction() << std::endl;
+                if (vrpnTracker->debugOutput)
+                    std::cout << std::string(6, ' ') << boneNames[boneType]
+                              << " bone, start: " << bone.prevJoint()
+                              << ", end: " << bone.nextJoint()
+                              << ", direction: " << bone.direction() << std::endl;
+
+
+                // convert to coordinate system
+                vrpn_CoordinateSystem& fingerJoint = vprnHand.fingerJoint(finger.type(), boneType);
+                
+                q_vec_set(fingerJoint.location,
+                    bone.prevJoint()[0], bone.prevJoint()[1],
+                    bone.prevJoint()[2]);
+                q_vec_type dir;
+                const q_vec_type Y = {0, 1, 0};
+                q_vec_set(dir, bone.direction()[0], bone.direction()[1],
+                          bone.direction()[2]);
+                q_from_two_vecs(fingerJoint.quat, dir, Y);
+
             }
         }
     }
