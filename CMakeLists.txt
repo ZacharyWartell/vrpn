@@ -421,6 +421,24 @@ if(VRPN_USE_LIBUSB_1_0)
 	list(APPEND SERVER_EXTRA_LIBS ${LIBUSB1_LIBRARIES})
 endif()
 
+###
+# LeapMotion
+# \todo General further beyond Windows
+###
+# Setting up the local HIDAPI was handled above, in the submodules directory
+if(NOT VRPN_USE_LOCAL_LEAPMOTION)
+	find_package(LeapMotion ${QUIET_IF_SUBPROJECT})
+endif()
+
+option_requires(VRPN_USE_LEAPMOTION
+	"Build devices requiring LeapMotion SDK V2"
+	${DEFAULT_OFF_IF_SUBPROJECT}
+	LEAPMOTION_FOUND)
+
+if(VRPN_USE_LEAPMOTION)
+	include_directories(AFTER ${LEAPMOTION_INCLUDE_DIRS})
+	list(APPEND SERVER_EXTRA_LIBS ${LEAPMOTION_LIBRARIES})
+endif()
 
 ###
 # HID and HIDAPI
@@ -571,6 +589,7 @@ if(VRPN_USE_LIBNIFALCON)
 	include_directories(${LIBNIFALCON_INCLUDE_DIRS})
 	list(APPEND SERVER_EXTRA_LIBS ${LIBNIFALCON_LIBRARIES})
 endif()
+
 
 ###
 # DirectInput and XInput
@@ -1139,6 +1158,7 @@ set(VRPN_SERVER_SOURCES
 	vrpn_Tracker_Isotrak.C
 	vrpn_Tracker_JsonNet.C
 	vrpn_Tracker_Liberty.C
+	vrpn_Tracker_LeapMotion.C
 	vrpn_Tracker_MotionNode.C
 	vrpn_Tracker_NDI_Polaris.C
 	vrpn_Tracker_NovintFalcon.C
@@ -1252,6 +1272,7 @@ set(VRPN_SERVER_PUBLIC_HEADERS
 	vrpn_Tracker_isense.h
 	vrpn_Tracker_Isotrak.h
 	vrpn_Tracker_JsonNet.h
+	vrpn_Tracker_LeapMotion.h
 	vrpn_Tracker_Liberty.h
 	vrpn_Tracker_MotionNode.h
 	vrpn_Tracker_NDI_Polaris.h

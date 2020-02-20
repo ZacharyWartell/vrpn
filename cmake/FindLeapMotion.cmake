@@ -1,46 +1,45 @@
-# - try to find HIDAPI library
-# from http://www.signal11.us/oss/hidapi/
+# - try to find LeapMotion Library
+# from ???
 #
 # Cache Variables: (probably not for direct use in your scripts)
-#  HIDAPI_INCLUDE_DIR
-#  HIDAPI_LIBRARY
+#  LEAPMOTION_INCLUDE_DIR
+#  LEAPMOTION_LIBRARY
 #
 # Non-cache variables you might use in your CMakeLists.txt:
-#  HIDAPI_FOUND
-#  HIDAPI_INCLUDE_DIRS
-#  HIDAPI_LIBRARIES
+#  LEAPMOTION_FOUND
+#  LEAPMOTION_INCLUDE_DIRS
+#  LEAPMOTION_LIBRARIES
 #
 # Requires these CMake modules:
 #  FindPackageHandleStandardArgs (known included with CMake >=2.6.2)
 #
 # Original Author:
-# 2009-2010 Ryan Pavlik <rpavlik@iastate.edu> <abiryan@ryand.net>
-# http://academic.cleardefinition.com
-# Iowa State University HCI Graduate Program/VRAC
+# Zachary Wartell, zwartell@uncc.edu, https://webpages.uncc.edu/zwartell/
 #
-# Copyright Iowa State University 2009-2010.
+# Copyright UNC Charlotte 2020.
 # Distributed under the Boost Software License, Version 1.0.
 # (See accompanying file LICENSE_1_0.txt or copy at
 # http://www.boost.org/LICENSE_1_0.txt)
 
-find_library(HIDAPI_LIBRARY
-	NAMES hidapi hidapi-libusb)
+find_library(LEAPMOTION_LIBRARY
+	NAMES Leap )
 
-find_path(HIDAPI_INCLUDE_DIR
-	NAMES hidapi.h
+find_path(LEAPMOTION_INCLUDE_DIR
+	NAMES Leap.h
 	PATH_SUFFIXES
-	hidapi)
+	LeapSDK )
 
 include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(HIDAPI
+
+find_package_handle_standard_args(LEAPMOTION
 	DEFAULT_MSG
-	HIDAPI_LIBRARY
-	HIDAPI_INCLUDE_DIR)
+	LEAPMOTION_LIBRARY
+	LEAPMOTION_INCLUDE_DIR)
 
-if(HIDAPI_FOUND)
-	set(HIDAPI_LIBRARIES "${HIDAPI_LIBRARY}")
+if(LEAPMOTION_FOUND)
+	set(LEAPMOTION_LIBRARIES "${LEAPMOTION_LIBRARY}")
 
-	set(HIDAPI_INCLUDE_DIRS "${HIDAPI_INCLUDE_DIR}")
+	set(LEAPMTION_INCLUDE_DIRS "${LEAPMOTION_INCLUDE_DIR}")
 endif()
 
-mark_as_advanced(HIDAPI_INCLUDE_DIR HIDAPI_LIBRARY)
+mark_as_advanced(LEAPMOTION_INCLUDE_DIR LEAPMOTION_LIBRARY)
