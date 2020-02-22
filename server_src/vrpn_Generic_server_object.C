@@ -1,7 +1,7 @@
-#include <stdlib.h>                 // for strtol, atoi, strtod
-#include <string.h>                 // for strcmp, strlen, strtok, etc
 #include "vrpn_MainloopContainer.h" // for vrpn_MainloopContainer
 #include <locale>                   // To enable setting parsing for .cfg file
+#include <stdlib.h>                 // for strtol, atoi, strtod
+#include <string.h>                 // for strcmp, strlen, strtok, etc
 #include <string>
 
 #include "timecode_generator_server/vrpn_timecode_generator.h"
@@ -9,11 +9,11 @@
 #include "vrpn_3DMicroscribe.h"
 #include "vrpn_3Space.h"     // for vrpn_Tracker_3Space
 #include "vrpn_5DT16.h"      // for vrpn_5dt16, etc
-#include "vrpn_Adafruit.h"   // for vrpn_Adafruit_10DOF
 #include "vrpn_ADBox.h"      // for vrpn_ADBox
+#include "vrpn_Adafruit.h"   // for vrpn_Adafruit_10DOF
+#include "vrpn_Analog.h"     // for vrpn_Analog, etc
 #include "vrpn_Analog_5dt.h" // for vrpn_5dt
 #include "vrpn_Analog_5dtUSB.h"
-#include "vrpn_Analog.h"             // for vrpn_Analog, etc
 #include "vrpn_Analog_Output.h"      // for vrpn_Analog_Output
 #include "vrpn_Analog_Radamec_SPI.h" // for vrpn_Radamec_SPI
 #include "vrpn_Analog_USDigital_A2.h"
@@ -23,8 +23,8 @@
 #include "vrpn_Button.h"           // for vrpn_Button, etc
 #include "vrpn_Button_NI_DIO24.h"
 #include "vrpn_Button_USB.h"
-#include "vrpn_CerealBox.h"                 // for vrpn_CerealBox
 #include "vrpn_CHProducts_Controller_Raw.h" // for vrpn_CHProducts_Fighterstick_USB
+#include "vrpn_CerealBox.h"                 // for vrpn_CerealBox
 #include "vrpn_Connection.h"
 #include "vrpn_Contour.h"  // for vrpn_Contour_ShuttleXpress, etc.
 #include "vrpn_DevInput.h" // for vrpn_DevInput
@@ -44,47 +44,44 @@
 #include "vrpn_IDEA.h"                 // for vrpn_IDEA
 #include "vrpn_Imager_Stream_Buffer.h" // for vrpn_Imager_Stream_Buffer
 #include "vrpn_ImmersionBox.h"         // for vrpn_ImmersionBox
-#include "vrpn_inertiamouse.h"         // for vrpn_inertiamouse
 #include "vrpn_JoyFly.h"               // for vrpn_Tracker_JoyFly
 #include "vrpn_Joylin.h"               // for vrpn_Joylin
 #include "vrpn_Joywin32.h"
 #include "vrpn_Keyboard.h"                // for vrpn_Keyboard
-#include "vrpn_Laputa.h"                  // for vrpn_Laputa
 #include "vrpn_LUDL.h"                    // for vrpn_LUDL_USBMAC6000
+#include "vrpn_Laputa.h"                  // for vrpn_Laputa
 #include "vrpn_Logitech_Controller_Raw.h" // for vrpn_Logitech_Extreme_3D_Pro, etc.
 #include "vrpn_Magellan.h"                // for vrpn_Magellan
 #include "vrpn_Microsoft_Controller_Raw.h" // for vrpn_Microsoft_Controller_Raw_Xbox_S, vrpn_Microsoft_Controller_Raw_Xbox_360, etc.
 #include "vrpn_Mouse.h"                    // for vrpn_Button_SerialMouse, etc
 #include "vrpn_NationalInstruments.h"
-#include "vrpn_nikon_controls.h"   // for vrpn_Nikon_Controls
-#include "vrpn_nVidia_shield_controller.h"
 #include "vrpn_Oculus.h"           // for vrpn_Oculus
 #include "vrpn_OmegaTemperature.h" // for vrpn_OmegaTemperature
-#include "vrpn_OzzMaker.h"   // for vrpn_OzzMaker_BerryIMU
+#include "vrpn_OzzMaker.h"         // for vrpn_OzzMaker_BerryIMU
 #include "vrpn_Phantom.h"
-#include "vrpn_Poser_Analog.h"          // for vrpn_Poser_AnalogParam, etc
 #include "vrpn_Poser.h"                 // for vrpn_Poser
+#include "vrpn_Poser_Analog.h"          // for vrpn_Poser_AnalogParam, etc
 #include "vrpn_Poser_Tek4662.h"         // for vrpn_Poser_Tek4662
-#include "vrpn_raw_sgibox.h"            // for vrpn_raw_SGIBox, for access to the SGI button & dial box connected to the serial port of an linux PC
 #include "vrpn_Retrolink.h"             // for vrpn_Retrolink_GameCube, etc.
 #include "vrpn_Saitek_Controller_Raw.h" // for vrpn_Saitek_ST290_Pro, etc.
-#include "vrpn_sgibox.h" //for access to the B&D box connected to an SGI via the IRIX GL drivers
-#include "vrpn_Sound.h"             // for vrpn_Sound
-#include "vrpn_Spaceball.h"         // for vrpn_Spaceball
-#include "vrpn_Streaming_Arduino.h" // for vrpn_Streaming_Arduino
-#include "vrpn_Tng3.h"              // for vrpn_Tng3
-#include "vrpn_Tracker_3DMouse.h"   // for vrpn_Tracker_3DMouse
-#include "vrpn_Tracker_AnalogFly.h" // for vrpn_Tracker_AnalogFlyParam, etc
-#include "vrpn_Tracker_ButtonFly.h" // for vrpn_TBF_axis, etc
-#include "vrpn_Tracker_Crossbow.h"  // for vrpn_Tracker_Crossbow
-#include "vrpn_Tracker_DTrack.h"    // for vrpn_Tracker_DTrack
-#include "vrpn_Tracker_Fastrak.h"   // for vrpn_Tracker_Fastrak
-#include "vrpn_Tracker_GameTrak.h"  // for vrpn_Tracker_GameTrak
-#include "vrpn_Tracker_GPS.h"       // for vrpn_Tracker_GPS
-#include "vrpn_Tracker.h"           // for vrpn_Tracker, etc
-#include "vrpn_Tracker_IMU.h"       // for vrpn_IMU_Magnetometer, etc
-#include "vrpn_Tracker_isense.h"
-#include "vrpn_Tracker_Isotrak.h" // for vrpn_Tracker_Isotrak
+#include "vrpn_Sound.h"                 // for vrpn_Sound
+#include "vrpn_Spaceball.h"             // for vrpn_Spaceball
+#include "vrpn_Streaming_Arduino.h"     // for vrpn_Streaming_Arduino
+#include "vrpn_Tng3.h"                  // for vrpn_Tng3
+#include "vrpn_Tracker.h"               // for vrpn_Tracker, etc
+#include "vrpn_Tracker_3DMouse.h"       // for vrpn_Tracker_3DMouse
+#include "vrpn_Tracker_AnalogFly.h"     // for vrpn_Tracker_AnalogFlyParam, etc
+#include "vrpn_Tracker_ButtonFly.h"     // for vrpn_TBF_axis, etc
+#include "vrpn_Tracker_Colibri.h"       // added by Dmitry Mastykin
+#include "vrpn_Tracker_Crossbow.h"      // for vrpn_Tracker_Crossbow
+#include "vrpn_Tracker_DTrack.h"        // for vrpn_Tracker_DTrack
+#include "vrpn_Tracker_Fastrak.h"       // for vrpn_Tracker_Fastrak
+#include "vrpn_Tracker_LeapMotion.h"       // for vrpn_Tracker_LeapMotion
+#include "vrpn_Tracker_Filter.h"        // for vrpn_Tracker_FilterOneEuro
+#include "vrpn_Tracker_GPS.h"           // for vrpn_Tracker_GPS
+#include "vrpn_Tracker_GameTrak.h"      // for vrpn_Tracker_GameTrak
+#include "vrpn_Tracker_IMU.h"           // for vrpn_IMU_Magnetometer, etc
+#include "vrpn_Tracker_Isotrak.h"       // for vrpn_Tracker_Isotrak
 #include "vrpn_Tracker_JsonNet.h"
 #include "vrpn_Tracker_Liberty.h"   // for vrpn_Tracker_Liberty
 #include "vrpn_Tracker_LibertyHS.h" // for vrpn_Tracker_LibertyHS
@@ -95,24 +92,28 @@
 #include "vrpn_Tracker_PDI.h"
 #include "vrpn_Tracker_PhaseSpace.h"
 #include "vrpn_Tracker_RazerHydra.h"      // for vrpn_Tracker_RazerHydra
-#include "vrpn_Tracker_Filter.h"          // for vrpn_Tracker_FilterOneEuro
 #include "vrpn_Tracker_SpacePoint.h"      // for vrpn_Tracker_SpacePoint
 #include "vrpn_Tracker_ThalmicLabsMyo.h"  // for vrpn_Tracker_ThalmicLabsMyo
 #include "vrpn_Tracker_TrivisioColibri.h" // added by David Borland
-#include "vrpn_Tracker_Colibri.h"         // added by Dmitry Mastykin
 #include "vrpn_Tracker_ViewPoint.h"       // added by David Borland
 #include "vrpn_Tracker_WiimoteHead.h"     // for vrpn_Tracker_WiimoteHead
 #include "vrpn_Tracker_Wintracker.h"      // for vrpn_Tracker_Wintracker
-#include "vrpn_Tracker_zSight.h"          // added by David Borland
-#include "vrpn_UNC_Joystick.h"            // for vrpn_Joystick
-#include "vrpn_VPJoystick.h"              // for vrpn_VPJoystick
-#include "vrpn_Wanda.h"                   // for vrpn_Wanda
+#include "vrpn_Tracker_isense.h"
+#include "vrpn_Tracker_zSight.h" // added by David Borland
+#include "vrpn_UNC_Joystick.h"   // for vrpn_Joystick
+#include "vrpn_VPJoystick.h"     // for vrpn_VPJoystick
+#include "vrpn_Vality.h"
+#include "vrpn_Wanda.h" // for vrpn_Wanda
 #include "vrpn_WiiMote.h"
 #include "vrpn_XInputGamepad.h"
-#include "vrpn_Xkeys.h"      // for vrpn_Xkeys_Desktop, etc
-#include "vrpn_YEI_3Space.h" // for vrpn_YEI_3Space_Sensor, etc
-#include "vrpn_Vality.h"
-#include "vrpn_Zaber.h"      // for vrpn_Zaber
+#include "vrpn_Xkeys.h"        // for vrpn_Xkeys_Desktop, etc
+#include "vrpn_YEI_3Space.h"   // for vrpn_YEI_3Space_Sensor, etc
+#include "vrpn_Zaber.h"        // for vrpn_Zaber
+#include "vrpn_inertiamouse.h" // for vrpn_inertiamouse
+#include "vrpn_nVidia_shield_controller.h"
+#include "vrpn_nikon_controls.h" // for vrpn_Nikon_Controls
+#include "vrpn_raw_sgibox.h" // for vrpn_raw_SGIBox, for access to the SGI button & dial box connected to the serial port of an linux PC
+#include "vrpn_sgibox.h" //for access to the B&D box connected to an SGI via the IRIX GL drivers
 
 class VRPN_API vrpn_Connection;
 
@@ -414,15 +415,15 @@ int vrpn_Generic_Server_Object::get_AFline(char *line, vrpn_TAF_axis *axis)
     float offset, thresh, power, scale;
 
     // Get the values from the line
-    if (sscanf(line, "%511s%511s%d%g%g%g%g", axis_name, name, &channel,
-               &offset, &thresh, &scale, &power) != 7) {
+    if (sscanf(line, "%511s%511s%d%g%g%g%g", axis_name, name, &channel, &offset,
+               &thresh, &scale, &power) != 7) {
         fprintf(stderr, "AnalogFly Axis: Bad axis line\n");
         delete[] name;
         return -1;
     }
 
     if (strcmp(name, "NULL") == 0) {
-        delete [] name;
+        delete[] name;
         axis->name = NULL;
     }
     else {
@@ -566,12 +567,24 @@ int vrpn_Generic_Server_Object::setup_Tracker_AnalogFly(char *&pch, char *line,
 
     _devices->add(new vrpn_Tracker_AnalogFly(s2, connection, &p, f1, absolute,
                                              false, worldFrame));
-    if (p.x.name != NULL) { delete [] p.x.name; }
-    if (p.y.name != NULL) { delete [] p.y.name; }
-    if (p.z.name != NULL) { delete [] p.z.name; }
-    if (p.sx.name != NULL) { delete [] p.sx.name; }
-    if (p.sy.name != NULL) { delete [] p.sy.name; }
-    if (p.sz.name != NULL) { delete [] p.sz.name; }
+    if (p.x.name != NULL) {
+        delete[] p.x.name;
+    }
+    if (p.y.name != NULL) {
+        delete[] p.y.name;
+    }
+    if (p.z.name != NULL) {
+        delete[] p.z.name;
+    }
+    if (p.sx.name != NULL) {
+        delete[] p.sx.name;
+    }
+    if (p.sy.name != NULL) {
+        delete[] p.sy.name;
+    }
+    if (p.sz.name != NULL) {
+        delete[] p.sz.name;
+    }
 
     return 0;
 }
@@ -1293,8 +1306,9 @@ int vrpn_Generic_Server_Object::setup_Tracker_3DMouse(char *&pch, char *line,
     if (numparms == 4) {
         filtering_count = atoi(s4);
         if (filtering_count < 1 || filtering_count > 5) {
-            fprintf(stderr, "3DMouse: Bad filtering count optional param "
-                            "(expected 1-5, got '%s')\n",
+            fprintf(stderr,
+                    "3DMouse: Bad filtering count optional param "
+                    "(expected 1-5, got '%s')\n",
                     s4);
             return -1;
         }
@@ -1391,8 +1405,9 @@ int vrpn_Generic_Server_Object::setup_Tracker_Fastrak(char *&pch, char *line,
             // Nothing to do
         }
         else {
-            fprintf(stderr, "Fastrak/Isense: Bad timing optional param "
-                            "(expected 'IS900time', got '%s')\n",
+            fprintf(stderr,
+                    "Fastrak/Isense: Bad timing optional param "
+                    "(expected 'IS900time', got '%s')\n",
                     s4);
             return -1;
         }
@@ -1536,14 +1551,219 @@ int vrpn_Generic_Server_Object::setup_Tracker_Fastrak(char *&pch, char *line,
                    lineSensor);
         }
         else {
-            fprintf(stderr, "Unknown command in Wand/Stylus description for "
-                            "Fastrak/Isense (%s)\n",
+            fprintf(stderr,
+                    "Unknown command in Wand/Stylus description for "
+                    "Fastrak/Isense (%s)\n",
                     lineCommand);
             delete mytracker;
             return -1;
         }
     }
 
+    _devices->add(mytracker);
+
+    return 0;
+}
+
+/*
+@author Zachary Wartell
+
+Stage I:
+
+ */
+int vrpn_Generic_Server_Object::setup_Tracker_LeapMotion(char *&pch, char *line,
+                                                         FILE *config_file)
+{
+
+    char s2[LINESIZE], s3[LINESIZE], s4[LINESIZE];
+    int i1=0;
+    int numparms=0;
+    int do_is900_timing = 0;
+
+    char rcmd[5000]; // Reset command to send to Fastrak
+    VRPN_CONFIG_NEXT();
+
+    // Get the arguments (class, tracker_name, port, ???)
+    if ((numparms = sscanf(pch, "%511s%511s", s2, s3)) < 2) {
+        fprintf(stderr, "Bad setup_Tracker_LeapMotion line: %s\n%s %s\n", line, pch,
+                s3);
+        return -1;
+    }
+#if 0
+    // See if we got the optional parameter to enable IS900 timings
+    if (numparms == 4) {
+        if (strncmp(s4, "IS900time", strlen("IS900time")) == 0) {
+            do_is900_timing = 1;
+            printf(" ...using IS900 timing information\n");
+        }
+        else if (strcmp(s4, "/") == 0) {
+            // Nothing to do
+        }
+        else if (strcmp(s4, "\\") == 0) {
+            // Nothing to do
+        }
+        else {
+            fprintf(stderr,
+                    "Fastrak/Isense: Bad timing optional param "
+                    "(expected 'IS900time', got '%s')\n",
+                    s4);
+            return -1;
+        }
+    }
+
+    // If the last character in the line is a backslash, '\', then
+    // the following line is an additional command to send to the
+    // Fastrak at reset time. So long as we find lines with slashes
+    // at the ends, we add them to the command string to send. Note
+    // that there is a newline at the end of the line, following the
+    // backslash.
+    rcmd[0] = 0;
+    while (line[strlen(line) - 2] == '\\') {
+        // Read the VRPN_CONFIG_NEXT line
+        if (fgets(line, LINESIZE, config_file) == NULL) {
+            fprintf(
+                stderr,
+                "Ran past end of config file in Fastrak/Isense description\n");
+            return -1;
+        }
+
+        // Copy the line into the remote command,
+        // then replace \ with \015 if present
+        // In any case, make sure we terminate with \015.
+        strncat(rcmd, line, LINESIZE);
+        if (rcmd[strlen(rcmd) - 2] == '\\') {
+            rcmd[strlen(rcmd) - 2] = '\015';
+            rcmd[strlen(rcmd) - 1] = '\0';
+        }
+        else if (rcmd[strlen(rcmd) - 2] == '/') {
+            rcmd[strlen(rcmd) - 2] = '\015';
+            rcmd[strlen(rcmd) - 1] = '\0';
+        }
+        else if (rcmd[strlen(rcmd) - 1] == '\n') {
+            rcmd[strlen(rcmd) - 1] = '\015';
+        }
+        else { // Add one, we reached the EOF before CR
+            rcmd[strlen(rcmd) + 1] = '\0';
+            rcmd[strlen(rcmd)] = '\015';
+        }
+    }
+
+    if (strlen(rcmd) > 0) {
+        printf("... additional reset commands follow:\n");
+        printf("%s\n", rcmd);
+    }
+
+    // Open the tracker
+    if (verbose)
+        printf("Opening vrpn_Tracker_Fastrak: %s on port %s, baud %d\n", s2, s3,
+               i1);
+#endif
+    vrpn_Tracker_LeapMotion *mytracker = new vrpn_Tracker_LeapMotion(s2, connection, 32, 60.0);
+
+#if 0
+    /*
+    Stage I:
+        ZJHW: blindly copy this from Fastrak
+
+    */
+    // If the last character in the line is a front slash, '/', then
+    // the following line is a command to add a Wand or Stylus to one
+    // of the sensors on the tracker.  Read and parse the line after,
+    // then add the devices needed to support.  Each line has two
+    // arguments, the string name of the devices and the integer
+    // sensor number (starting with 0) to attach the device to.
+    while (line[strlen(line) - 2] == '/') {
+        char lineCommand[LINESIZE];
+        char lineName[LINESIZE];
+        int lineSensor;
+
+        // Read the next line
+        if (fgets(line, LINESIZE, config_file) == NULL) {
+            fprintf(
+                stderr,
+                "Ran past end of config file in Fastrak/Isense description\n");
+            delete mytracker;
+            return -1;
+        }
+
+        // Parse the line.  Both "Wand" and "Stylus" lines start with the name
+        // and sensor #
+        if (sscanf(line, "%511s%511s%d", lineCommand, lineName, &lineSensor) !=
+            3) {
+            fprintf(
+                stderr,
+                "Bad line in Wand/Stylus description for Fastrak/Isense (%s)\n",
+                line);
+            delete mytracker;
+            return -1;
+        }
+
+        // See which command it is and act accordingly
+        if (strcmp(lineCommand, "Wand") == 0) {
+            double c0min, c0lo0, c0hi0, c0max;
+            double c1min, c1lo0, c1hi0, c1max;
+
+            // Wand line has additional scale/clip information; read it in
+            if (sscanf(line, "%511s%511s%d%lf%lf%lf%lf%lf%lf%lf%lf",
+                       lineCommand, lineName, &lineSensor, &c0min, &c0lo0,
+                       &c0hi0, &c0max, &c1min, &c1lo0, &c1hi0, &c1max) != 11) {
+                fprintf(
+                    stderr,
+                    "Bad line in Wand description for Fastrak/Isense (%s)\n",
+                    line);
+                delete mytracker;
+                return -1;
+            }
+
+            if (mytracker->add_is900_analog(lineName, lineSensor, c0min, c0lo0,
+                                            c0hi0, c0max, c1min, c1lo0, c1hi0,
+                                            c1max)) {
+                fprintf(stderr,
+                        "Cannot set Wand analog for Fastrak/Isense (%s)\n",
+                        line);
+                delete mytracker;
+                return -1;
+            }
+            if (mytracker->add_is900_button(lineName, lineSensor, 6)) {
+                fprintf(stderr,
+                        "Cannot set Wand buttons for Fastrak/Isense (%s)\n",
+                        line);
+                delete mytracker;
+                return -1;
+            }
+            printf(" ...added Wand (%s) to sensor %d\n", lineName, lineSensor);
+        }
+        else if (strcmp(lineCommand, "Stylus") == 0) {
+            if (mytracker->add_is900_button(lineName, lineSensor, 2)) {
+                fprintf(stderr,
+                        "Cannot set Stylus buttons for Fastrak/Isense (%s)\n",
+                        line);
+                delete mytracker;
+                return -1;
+            }
+            printf(" ...added Stylus (%s) to sensor %d\n", lineName,
+                   lineSensor);
+        }
+        else if (strcmp(lineCommand, "FTStylus") == 0) {
+            if (mytracker->add_fastrak_stylus_button(lineName, lineSensor, 1)) {
+                fprintf(stderr, "Cannot set Stylus buttons for Fastrak (%s)\n",
+                        line);
+                delete mytracker;
+                return -1;
+            }
+            printf(" ...added FTStylus (%s) to sensor %d\n", lineName,
+                   lineSensor);
+        }
+        else {
+            fprintf(stderr,
+                    "Unknown command in Wand/Stylus description for "
+                    "Fastrak/Isense (%s)\n",
+                    lineCommand);
+            delete mytracker;
+            return -1;
+        }
+    }
+#endif
     _devices->add(mytracker);
 
     return 0;
@@ -2049,27 +2269,29 @@ int vrpn_Generic_Server_Object::setup_Tracker_NULL(char *&pch, char *line,
 }
 
 int vrpn_Generic_Server_Object::setup_Tracker_Spin(char *&pch, char *line,
-  FILE * /*config_file*/)
+                                                   FILE * /*config_file*/)
 {
 
-  char s2[LINESIZE];
-  int i1;
-  float report, x, y, z, spin;
+    char s2[LINESIZE];
+    int i1;
+    float report, x, y, z, spin;
 
-  VRPN_CONFIG_NEXT();
-  // Get the arguments (class, tracker_name, sensors, rate)
-  if (sscanf(pch, "%511s%d%g%g%g%g%g", s2, &i1, &report, &x, &y, &z, &spin) != 7) {
-    fprintf(stderr, "Bad vrpn_Tracker_Spin line: %s\n", line);
-    return -1;
-  }
+    VRPN_CONFIG_NEXT();
+    // Get the arguments (class, tracker_name, sensors, rate)
+    if (sscanf(pch, "%511s%d%g%g%g%g%g", s2, &i1, &report, &x, &y, &z, &spin) !=
+        7) {
+        fprintf(stderr, "Bad vrpn_Tracker_Spin line: %s\n", line);
+        return -1;
+    }
 
-  // Open the tracker
-  if (verbose)
-    printf("Opening vrpn_Tracker_Spin: %s with %d sensors, rate %f\n", s2,
-    i1, report);
-  _devices->add(new vrpn_Tracker_Spin(s2, connection, i1, report, x, y, z, spin));
+    // Open the tracker
+    if (verbose)
+        printf("Opening vrpn_Tracker_Spin: %s with %d sensors, rate %f\n", s2,
+               i1, report);
+    _devices->add(
+        new vrpn_Tracker_Spin(s2, connection, i1, report, x, y, z, spin));
 
-  return 0;
+    return 0;
 }
 
 int vrpn_Generic_Server_Object::setup_Button_Python(char *&pch, char *line,
@@ -2246,10 +2468,10 @@ int vrpn_Generic_Server_Object::setup_Joywin32(char *&pch, char *line,
 
 //================================
 int vrpn_Generic_Server_Object::setup_StreamingArduino(char *&pch, char *line,
-                                           FILE * /*config_file*/)
+                                                       FILE * /*config_file*/)
 {
     char s2[LINESIZE], s3[LINESIZE];
-    int numAna,baud;
+    int numAna, baud;
     VRPN_CONFIG_NEXT();
     // Get the arguments (class, tng3_name, port, numana, baud)
     // Baud is optional, and may not be listed.  If not, we default
@@ -2270,23 +2492,23 @@ int vrpn_Generic_Server_Object::setup_StreamingArduino(char *&pch, char *line,
 
 //================================
 int vrpn_Generic_Server_Object::setup_Tng3(char *&pch, char *line,
-  FILE * /*config_file*/)
+                                           FILE * /*config_file*/)
 {
-  char s2[LINESIZE], s3[LINESIZE];
-  int i1, i2;
-  VRPN_CONFIG_NEXT();
-  // Get the arguments (class, tng3_name, port, numdig, numana)
-  if (sscanf(pch, "%511s%511s%d%d", s2, s3, &i1, &i2) != 4) {
-    fprintf(stderr, "Bad vrpn_Tng3 line: %s\n", line);
-    return -1;
-  }
-  // Open the box
-  if (verbose)
-    printf("Opening vrpn_Tng3: %s on port %s, baud %d, %d digital, "
-    " %d analog\n",
-    s2, s3, 19200, i1, i2);
-  _devices->add(new vrpn_Tng3(s2, connection, s3, 19200, i1, i2));
-  return 0;
+    char s2[LINESIZE], s3[LINESIZE];
+    int i1, i2;
+    VRPN_CONFIG_NEXT();
+    // Get the arguments (class, tng3_name, port, numdig, numana)
+    if (sscanf(pch, "%511s%511s%d%d", s2, s3, &i1, &i2) != 4) {
+        fprintf(stderr, "Bad vrpn_Tng3 line: %s\n", line);
+        return -1;
+    }
+    // Open the box
+    if (verbose)
+        printf("Opening vrpn_Tng3: %s on port %s, baud %d, %d digital, "
+               " %d analog\n",
+               s2, s3, 19200, i1, i2);
+    _devices->add(new vrpn_Tng3(s2, connection, s3, 19200, i1, i2));
+    return 0;
 }
 
 //================================
@@ -2430,8 +2652,9 @@ int vrpn_Generic_Server_Object::setup_Tracker_InterSense(char *&pch, char *line,
                       // USB port.
     }
     else {
-        fprintf(stderr, "Error determining COM port: %s not should be either "
-                        "COM1, COM2, COM3, COM4 or AUTO",
+        fprintf(stderr,
+                "Error determining COM port: %s not should be either "
+                "COM1, COM2, COM3, COM4 or AUTO",
                 commStr);
         return -1;
     }
@@ -2471,9 +2694,10 @@ int vrpn_Generic_Server_Object::setup_Tracker_InterSense(char *&pch, char *line,
             found_a_valid_option = 1;
         }
         if (!found_a_valid_option) {
-            fprintf(stderr, "InterSense: Bad optional param (expected "
-                            "'IS900time', 'ResetAtStartup' and/or "
-                            "'SensorsStartsAtOne', got '%s %s %s')\n",
+            fprintf(stderr,
+                    "InterSense: Bad optional param (expected "
+                    "'IS900time', 'ResetAtStartup' and/or "
+                    "'SensorsStartsAtOne', got '%s %s %s')\n",
                     s4, s5, s6);
             return -1;
         }
@@ -2604,8 +2828,9 @@ int vrpn_Generic_Server_Object::setup_Tracker_InterSense(char *&pch, char *line,
                    lineSensor);
         }
         else {
-            fprintf(stderr, "Unknown command in Wand/Stylus description for "
-                            "InterSense (%s)\n",
+            fprintf(stderr,
+                    "Unknown command in Wand/Stylus description for "
+                    "InterSense (%s)\n",
                     lineCommand);
             delete mytracker;
             return -1;
@@ -2968,7 +3193,8 @@ int vrpn_Generic_Server_Object::get_poser_axis_line(FILE *config_file,
 {
     char line[LINESIZE];
     char _axis_name[LINESIZE];
-    char *name = new char[LINESIZE]; // We need this to stay around for the param
+    char *name =
+        new char[LINESIZE]; // We need this to stay around for the param
     int channel;
     float offset, scale;
 
@@ -2999,8 +3225,9 @@ int vrpn_Generic_Server_Object::get_poser_axis_line(FILE *config_file,
         axis->channel = channel;
         axis->offset = offset;
         axis->scale = scale;
-    } else {
-        delete [] name;
+    }
+    else {
+        delete[] name;
     }
 
     return 0;
@@ -3060,12 +3287,24 @@ int vrpn_Generic_Server_Object::setup_Poser_Analog(char *&pch, char *line,
     }
 
     _devices->add(new vrpn_Poser_Analog(s2, connection, &p, i1 != 0));
-    if (p.x.ana_name != NULL) { delete [] p.x.ana_name; }
-    if (p.y.ana_name != NULL) { delete [] p.y.ana_name; }
-    if (p.z.ana_name != NULL) { delete [] p.z.ana_name; }
-    if (p.rx.ana_name != NULL) { delete [] p.rx.ana_name; }
-    if (p.ry.ana_name != NULL) { delete [] p.ry.ana_name; }
-    if (p.rz.ana_name != NULL) { delete [] p.rz.ana_name; }
+    if (p.x.ana_name != NULL) {
+        delete[] p.x.ana_name;
+    }
+    if (p.y.ana_name != NULL) {
+        delete[] p.y.ana_name;
+    }
+    if (p.z.ana_name != NULL) {
+        delete[] p.z.ana_name;
+    }
+    if (p.rx.ana_name != NULL) {
+        delete[] p.rx.ana_name;
+    }
+    if (p.ry.ana_name != NULL) {
+        delete[] p.ry.ana_name;
+    }
+    if (p.rz.ana_name != NULL) {
+        delete[] p.rz.ana_name;
+    }
 
     return 0;
 }
@@ -3336,8 +3575,9 @@ int vrpn_Generic_Server_Object::setup_Analog_USDigital_A2(
         (vrpn_uint32)numChannels >
             vrpn_Analog_USDigital_A2::vrpn_Analog_USDigital_A2_CHANNEL_MAX ||
         numChannels > vrpn_CHANNEL_MAX) {
-        fprintf(stderr, "Invalid number of channels %d in "
-                        "vrpn_Analog_USDigital_A2 line: %s\n",
+        fprintf(stderr,
+                "Invalid number of channels %d in "
+                "vrpn_Analog_USDigital_A2 line: %s\n",
                 numChannels, line);
         return -1;
     }
@@ -3410,9 +3650,9 @@ int vrpn_Generic_Server_Object::setup_Button_NI_DIO24(char *&pch, char *line,
 
 } //  setup_Button_NI_DIO24
 
-int vrpn_Generic_Server_Object::setup_Tracker_OSVRHackerDevKit(char *&pch, char
-                                                               *line, FILE
-                                                               *)
+int vrpn_Generic_Server_Object::setup_Tracker_OSVRHackerDevKit(char *&pch,
+                                                               char *line,
+                                                               FILE *)
 {
     char s2[LINESIZE];
 
@@ -3443,49 +3683,55 @@ int vrpn_Generic_Server_Object::setup_Tracker_PhaseSpace(char *&pch, char *line,
 {
 #ifdef VRPN_INCLUDE_PHASESPACE
 
-  char trackerName[LINESIZE];
-  char device[LINESIZE];
-  float framerate = 0;
-  int readflag = 0;
-  int slaveflag = 0;
+    char trackerName[LINESIZE];
+    char device[LINESIZE];
+    float framerate = 0;
+    int readflag = 0;
+    int slaveflag = 0;
 
-  VRPN_CONFIG_NEXT();
+    VRPN_CONFIG_NEXT();
 
-  vrpn_Tracker_PhaseSpace* pstracker = NULL;
+    vrpn_Tracker_PhaseSpace *pstracker = NULL;
 
-  if (sscanf(line, "vrpn_Tracker_PhaseSpace %s", trackerName) == 1) {
-    pstracker = new vrpn_Tracker_PhaseSpace (trackerName, connection);
-  } else {
-    fprintf (stderr, "Bad vrpn_Tracker_PhaseSpace line: %s\nProper format is:  vrpn_Tracker_Phasespace trackerName\n", line);
-    return -1;
-  }
+    if (sscanf(line, "vrpn_Tracker_PhaseSpace %s", trackerName) == 1) {
+        pstracker = new vrpn_Tracker_PhaseSpace(trackerName, connection);
+    }
+    else {
+        fprintf(stderr,
+                "Bad vrpn_Tracker_PhaseSpace line: %s\nProper format is:  "
+                "vrpn_Tracker_Phasespace trackerName\n",
+                line);
+        return -1;
+    }
 
-  // parse config file
-  printf("Parsing config file...\n\n");
-  if(!pstracker->load(config_file)) {
-    fprintf(stderr, "Error parsing config file.\n");
-    delete pstracker;
-    return -1;
-  }
+    // parse config file
+    printf("Parsing config file...\n\n");
+    if (!pstracker->load(config_file)) {
+        fprintf(stderr, "Error parsing config file.\n");
+        delete pstracker;
+        return -1;
+    }
 
-  if(!pstracker->InitOWL()) {
-    fprintf(stderr, "owl init error.\n");
-    delete pstracker;
-    return -1;
-  }
+    if (!pstracker->InitOWL()) {
+        fprintf(stderr, "owl init error.\n");
+        delete pstracker;
+        return -1;
+    }
 
-  // start streaming data
-  if (!pstracker->enableStreaming(true)) {
-    delete pstracker;
-    return -1;
-  }
+    // start streaming data
+    if (!pstracker->enableStreaming(true)) {
+        delete pstracker;
+        return -1;
+    }
 
-  _devices->add(pstracker);
-  return 0;
+    _devices->add(pstracker);
+    return 0;
 
 #else
-  fprintf (stderr, "vrpn_server: Can't open PhaseSpace OWL server: VRPN_INCLUDE_PHASESPACE not defined in vrpn_Configure.h!\n");
-  return -1;
+    fprintf(stderr,
+            "vrpn_server: Can't open PhaseSpace OWL server: "
+            "VRPN_INCLUDE_PHASESPACE not defined in vrpn_Configure.h!\n");
+    return -1;
 #endif
 }
 
@@ -3517,36 +3763,39 @@ int vrpn_Generic_Server_Object::setup_Tracker_RazerHydra(char *&pch, char *line,
 }
 
 //================================
-int vrpn_Generic_Server_Object::setup_Tracker_ThalmicLabsMyo(char * &pch, char * line, FILE *)
+int vrpn_Generic_Server_Object::setup_Tracker_ThalmicLabsMyo(char *&pch,
+                                                             char *line, FILE *)
 {
-  char s2[LINESIZE];
-  int useLockI;
-  int armSide;
-  
-  VRPN_CONFIG_NEXT();
-  int ret = sscanf (pch, "%511s %d %d", s2,&useLockI, &armSide);
-  if (ret != 3) {
-      fprintf(stderr, "Bad ThalmicLabsMyo line: %s\n", line);
-      return -1;
-  }
-  bool useLock = useLockI > 0;
+    char s2[LINESIZE];
+    int useLockI;
+    int armSide;
+
+    VRPN_CONFIG_NEXT();
+    int ret = sscanf(pch, "%511s %d %d", s2, &useLockI, &armSide);
+    if (ret != 3) {
+        fprintf(stderr, "Bad ThalmicLabsMyo line: %s\n", line);
+        return -1;
+    }
+    bool useLock = useLockI > 0;
 #ifdef VRPN_INCLUDE_THALMICLABSMYO
-  // Open the Myo
-  if (verbose) {
-      printf ("Opening vrpn_Tracker_ThalmicLabsMyo %s, use lock is %n", s2,useLock);
-  }
-  // Open the tracker
-  _devices->add(new vrpn_Tracker_ThalmicLabsMyo(s2, connection,useLock,(vrpn_Tracker_ThalmicLabsMyo::ARMSIDE)armSide));
+    // Open the Myo
+    if (verbose) {
+        printf("Opening vrpn_Tracker_ThalmicLabsMyo %s, use lock is %n", s2,
+               useLock);
+    }
+    // Open the tracker
+    _devices->add(new vrpn_Tracker_ThalmicLabsMyo(
+        s2, connection, useLock,
+        (vrpn_Tracker_ThalmicLabsMyo::ARMSIDE)armSide));
 #else
-  fprintf(stderr,
-          "ThalmicLabsMyo driver works only with VRPN_INCLUDE_THALMICLABSMYO defined!\n");
-  useLock = !useLock;	// Unused parameter, removing warning.
+    fprintf(stderr, "ThalmicLabsMyo driver works only with "
+                    "VRPN_INCLUDE_THALMICLABSMYO defined!\n");
+    useLock = !useLock; // Unused parameter, removing warning.
 #endif
-  return 0;  // successful completion
+    return 0; // successful completion
 }
 
-int vrpn_Generic_Server_Object::setup_Tracker_NDI_Polaris(char *&,
-                                                          char *line,
+int vrpn_Generic_Server_Object::setup_Tracker_NDI_Polaris(char *&, char *line,
                                                           FILE *config_file)
 {
     char trackerName[LINESIZE];
@@ -3574,8 +3823,9 @@ int vrpn_Generic_Server_Object::setup_Tracker_NDI_Polaris(char *&,
         rigidBodyFileNames[rbNum] =
             new char[LINESIZE]; // allocate string for filename
         if (sscanf(line, "%s", rigidBodyFileNames[rbNum]) != 1) {
-            fprintf(stderr, "Tracker_NDI_Polaris: error reading .rom filename "
-                            "#%d from config file in line: %s\n",
+            fprintf(stderr,
+                    "Tracker_NDI_Polaris: error reading .rom filename "
+                    "#%d from config file in line: %s\n",
                     rbNum, line);
             return -1;
         }
@@ -3591,7 +3841,7 @@ int vrpn_Generic_Server_Object::setup_Tracker_NDI_Polaris(char *&,
 
     // free the .rom filename strings
     for (rbNum = 0; rbNum < numRigidBodies; rbNum++) {
-        delete [] (rigidBodyFileNames[rbNum]);
+        delete[](rigidBodyFileNames[rbNum]);
     }
     return (0); // success
 }
@@ -3765,8 +4015,7 @@ int vrpn_Generic_Server_Object::setup_SpacePoint(char *&pch, char *line,
         return -1;
     }
 
-
-// Open the SpacePoint
+    // Open the SpacePoint
 
 #ifdef VRPN_USE_HID
     // Open the tracker
@@ -3801,7 +4050,7 @@ int vrpn_Generic_Server_Object::setup_Wintracker(char *&pch, char *line,
         return -1;
     }
 
-// Open the Wintracker
+    // Open the Wintracker
 
 #ifdef VRPN_USE_HID
     // Open the tracker
@@ -3979,33 +4228,35 @@ int vrpn_Generic_Server_Object::setup_Tracker_TrivisioColibri(
 #endif
 }
 
-int vrpn_Generic_Server_Object::setup_Tracker_Colibri (char * & pch, char * line, FILE * /*config_file*/)
+int vrpn_Generic_Server_Object::setup_Tracker_Colibri(char *&pch, char *line,
+                                                      FILE * /*config_file*/)
 {
-  char s2 [LINESIZE];
-  char s3 [LINESIZE];
-  int Hz;
-  int report_a_w;
+    char s2[LINESIZE];
+    char s3[LINESIZE];
+    int Hz;
+    int report_a_w;
 
-  VRPN_CONFIG_NEXT();
-  // Get the arguments
-  if (sscanf (pch, "%511s%511s%d%d", s2, s3, &Hz, &report_a_w) != 4) {
-    fprintf (stderr, "Bad vrpn_Tracker_Colibri line: %s\n", line);
-    return -1;
-  }
+    VRPN_CONFIG_NEXT();
+    // Get the arguments
+    if (sscanf(pch, "%511s%511s%d%d", s2, s3, &Hz, &report_a_w) != 4) {
+        fprintf(stderr, "Bad vrpn_Tracker_Colibri line: %s\n", line);
+        return -1;
+    }
 
 #ifdef VRPN_USE_COLIBRIAPI
-  // Open the Trivisio Colibri if we can.
-  if (verbose) {
-    printf ("Opening vrpn_Tracker_Colibri: %s with %d Hz", s2, Hz);
-  }
+    // Open the Trivisio Colibri if we can.
+    if (verbose) {
+        printf("Opening vrpn_Tracker_Colibri: %s with %d Hz", s2, Hz);
+    }
 
-  _devices->add(new vrpn_Tracker_Colibri(s2, connection,
-                s3[0] == '*' ? NULL : s3, Hz, report_a_w));
+    _devices->add(new vrpn_Tracker_Colibri(
+        s2, connection, s3[0] == '*' ? NULL : s3, Hz, report_a_w));
 
-  return 0;
+    return 0;
 #else
-  fprintf (stderr, "vrpn_server: Can't open vrpn_Tracker_Colibri: VRPN_USE_COLIBRIAPI not defined in vrpn_Configure.h!\n");
-  return -1;
+    fprintf(stderr, "vrpn_server: Can't open vrpn_Tracker_Colibri: "
+                    "VRPN_USE_COLIBRIAPI not defined in vrpn_Configure.h!\n");
+    return -1;
 #endif
 }
 
@@ -4063,8 +4314,9 @@ int setup_Analog_5dtUSB(const char *specialization, bool verbose,
     _devices->add(new T(s2, connection));
     return 0;
 #else
-    fprintf(stderr, "vrpn_server: Can't open vrpn_Analog_5dtUSB_%s: "
-                    "VRPN_USE_HID not defined in vrpn_Configure.h!\n",
+    fprintf(stderr,
+            "vrpn_server: Can't open vrpn_Analog_5dtUSB_%s: "
+            "VRPN_USE_HID not defined in vrpn_Configure.h!\n",
             specialization);
     return -1;
 #endif
@@ -4500,9 +4752,9 @@ int vrpn_Generic_Server_Object::setup_YEI_3Space_Sensor(char *&pch, char *line,
     // all of them to NULL pointers, indicating no commands.
     const int MAX_RESET_COMMANDS = 1024;
     int num_reset_commands = 0;
-    const char *reset_commands[MAX_RESET_COMMANDS+1];
+    const char *reset_commands[MAX_RESET_COMMANDS + 1];
     for (int i = 0; i < MAX_RESET_COMMANDS; i++) {
-      reset_commands[i] = NULL;
+        reset_commands[i] = NULL;
     }
 
     // If the last character in the line is a backslash, '\', then
@@ -4514,9 +4766,7 @@ int vrpn_Generic_Server_Object::setup_YEI_3Space_Sensor(char *&pch, char *line,
     while (line[strlen(line) - 2] == '\\') {
         // Read the VRPN_CONFIG_NEXT line
         if (fgets(line, LINESIZE, config_file) == NULL) {
-            fprintf(
-                stderr,
-                "Ran past end of config file in YEI description\n");
+            fprintf(stderr, "Ran past end of config file in YEI description\n");
             return -1;
         }
 
@@ -4524,15 +4774,15 @@ int vrpn_Generic_Server_Object::setup_YEI_3Space_Sensor(char *&pch, char *line,
         // array and then store this into the reset_commands list
         // if we haven't run out of room for them.
         if (num_reset_commands < MAX_RESET_COMMANDS) {
-          char command[LINESIZE];
-          sscanf(line, "%s", command);
-          char *command_copy = new char[strlen(command)+1];
-          if (command_copy == NULL) {
-            fprintf(stderr, "Out of memory in YEI description\n");
-            return -1;
-          }
-          strcpy(command_copy, command);
-          reset_commands[num_reset_commands++] = command_copy;
+            char command[LINESIZE];
+            sscanf(line, "%s", command);
+            char *command_copy = new char[strlen(command) + 1];
+            if (command_copy == NULL) {
+                fprintf(stderr, "Out of memory in YEI description\n");
+                return -1;
+            }
+            strcpy(command_copy, command);
+            reset_commands[num_reset_commands++] = command_copy;
         }
     }
 
@@ -4541,30 +4791,30 @@ int vrpn_Generic_Server_Object::setup_YEI_3Space_Sensor(char *&pch, char *line,
         printf("Opening vrpn_YEI_3Space_Sensor: %s on port %s, baud %d\n", name,
                port.c_str(), baud_rate);
         if (num_reset_commands > 0) {
-          printf("... additional reset commands follow:\n");
-          for (int i = 0; i < num_reset_commands; i++) {
-            printf("  %s\n", reset_commands[i]);
-          }
+            printf("... additional reset commands follow:\n");
+            for (int i = 0; i < num_reset_commands; i++) {
+                printf("  %s\n", reset_commands[i]);
+            }
         }
     }
     _devices->add(new vrpn_YEI_3Space_Sensor(
-        name, connection, port.c_str(), baud_rate, calibrate_gyros != 0, tare != 0,
-        frames_per_second, red_LED, green_LED, blue_LED, LED_mode,
+        name, connection, port.c_str(), baud_rate, calibrate_gyros != 0,
+        tare != 0, frames_per_second, red_LED, green_LED, blue_LED, LED_mode,
         reset_commands));
 
     // Free up any additional-reset command data.
     for (int i = 0; i < MAX_RESET_COMMANDS; i++) {
-      if (reset_commands[i] != NULL) {
-        delete [] reset_commands[i];
-        reset_commands[i] = NULL;
-      }
+        if (reset_commands[i] != NULL) {
+            delete[] reset_commands[i];
+            reset_commands[i] = NULL;
+        }
     }
 
     return 0;
 }
 
-int vrpn_Generic_Server_Object::setup_YEI_3Space_Sensor_Wireless(char *&pch, char *line,
-                                                        FILE *config_file)
+int vrpn_Generic_Server_Object::setup_YEI_3Space_Sensor_Wireless(
+    char *&pch, char *line, FILE *config_file)
 {
     char name[LINESIZE], device[LINESIZE];
     int logical_id, baud_rate, calibrate_gyros, tare;
@@ -4575,11 +4825,11 @@ int vrpn_Generic_Server_Object::setup_YEI_3Space_Sensor_Wireless(char *&pch, cha
     VRPN_CONFIG_NEXT();
     // Get the arguments (class, name, port, baud, calibrate_gyros, tare,
     // frames_per_second
-    if (sscanf(pch, "%511s%d%511s%d%d%d%lf%f%f%f%d", name, &logical_id,
-               device, &baud_rate,
-               &calibrate_gyros, &tare, &frames_per_second, &red_LED,
-               &green_LED, &blue_LED, &LED_mode) != 11) {
-        fprintf(stderr, "Bad setup_YEI_3Space_Sensor_Wireless line: %s\n", line);
+    if (sscanf(pch, "%511s%d%511s%d%d%d%lf%f%f%f%d", name, &logical_id, device,
+               &baud_rate, &calibrate_gyros, &tare, &frames_per_second,
+               &red_LED, &green_LED, &blue_LED, &LED_mode) != 11) {
+        fprintf(stderr, "Bad setup_YEI_3Space_Sensor_Wireless line: %s\n",
+                line);
         return -1;
     }
 
@@ -4599,11 +4849,11 @@ int vrpn_Generic_Server_Object::setup_YEI_3Space_Sensor_Wireless(char *&pch, cha
     // all of them to NULL pointers, indicating no commands.
     const int MAX_RESET_COMMANDS = 1024;
     int num_reset_commands = 0;
-    const char *reset_commands[MAX_RESET_COMMANDS+1];
+    const char *reset_commands[MAX_RESET_COMMANDS + 1];
     for (int i = 0; i < MAX_RESET_COMMANDS; i++) {
-      reset_commands[i] = NULL;
+        reset_commands[i] = NULL;
     }
-    
+
     // If the last character in the line is a backslash, '\', then
     // the following line is an additional command to send to the
     // YEI at reset time. So long as we find lines with backslashes
@@ -4613,9 +4863,7 @@ int vrpn_Generic_Server_Object::setup_YEI_3Space_Sensor_Wireless(char *&pch, cha
     while (line[strlen(line) - 2] == '\\') {
         // Read the VRPN_CONFIG_NEXT line
         if (fgets(line, LINESIZE, config_file) == NULL) {
-            fprintf(
-                stderr,
-                "Ran past end of config file in YEI description\n");
+            fprintf(stderr, "Ran past end of config file in YEI description\n");
             return -1;
         }
 
@@ -4623,42 +4871,42 @@ int vrpn_Generic_Server_Object::setup_YEI_3Space_Sensor_Wireless(char *&pch, cha
         // array and then store this into the reset_commands list
         // if we haven't run out of room for them.
         if (num_reset_commands < MAX_RESET_COMMANDS) {
-          char command[LINESIZE];
-          sscanf(line, "%s", command);
-          char *command_copy = new char[strlen(command)+1];
-          if (command_copy == NULL) {
-            fprintf(stderr, "Out of memory in YEI description\n");
-            return -1;
-          }
-          strcpy(command_copy, command);
-          reset_commands[num_reset_commands++] = command_copy;
+            char command[LINESIZE];
+            sscanf(line, "%s", command);
+            char *command_copy = new char[strlen(command) + 1];
+            if (command_copy == NULL) {
+                fprintf(stderr, "Out of memory in YEI description\n");
+                return -1;
+            }
+            strcpy(command_copy, command);
+            reset_commands[num_reset_commands++] = command_copy;
         }
     }
 
     // Open the device
     if (verbose) {
-        printf("Opening setup_YEI_3Space_Sensor_Wireless: %s on port %s, baud %d\n", name,
-            port.c_str(), baud_rate);
+        printf("Opening setup_YEI_3Space_Sensor_Wireless: %s on port %s, baud "
+               "%d\n",
+               name, port.c_str(), baud_rate);
         if (num_reset_commands > 0) {
-          printf("... additional reset commands follow:\n");
-          for (int i = 0; i < num_reset_commands; i++) {
-            printf("  %s\n", reset_commands[i]);
-          }
+            printf("... additional reset commands follow:\n");
+            for (int i = 0; i < num_reset_commands; i++) {
+                printf("  %s\n", reset_commands[i]);
+            }
         }
     }
     vrpn_YEI_3Space_Sensor_Wireless *dev = new vrpn_YEI_3Space_Sensor_Wireless(
-        name, connection,
-        logical_id, port.c_str(), baud_rate, calibrate_gyros != 0, tare != 0,
-        frames_per_second, red_LED, green_LED, blue_LED, LED_mode,
-        reset_commands);
+        name, connection, logical_id, port.c_str(), baud_rate,
+        calibrate_gyros != 0, tare != 0, frames_per_second, red_LED, green_LED,
+        blue_LED, LED_mode, reset_commands);
     _devices->add(dev);
 
     // Free up any additional-reset command data.
     for (int i = 0; i < MAX_RESET_COMMANDS; i++) {
-      if (reset_commands[i] != NULL) {
-        delete [] reset_commands[i];
-        reset_commands[i] = NULL;
-      }
+        if (reset_commands[i] != NULL) {
+            delete[] reset_commands[i];
+            reset_commands[i] = NULL;
+        }
     }
 
     // If the last character in the line is a slash, '/', then
@@ -4669,87 +4917,86 @@ int vrpn_Generic_Server_Object::setup_YEI_3Space_Sensor_Wireless(char *&pch, cha
     // device.
     int serial_fd = dev->get_serial_file_descriptor();
     while (line[strlen(line) - 2] == '/') {
-      // Read the VRPN_CONFIG_NEXT line
-      if (fgets(line, LINESIZE, config_file) == NULL) {
-          fprintf(
-              stderr,
-              "Ran past end of config file in YEI description\n");
-          return -1;
-      }
-
-      // Get the arguments (class, name, port, baud, calibrate_gyros, tare,
-      // frames_per_second.
-      char classname[LINESIZE]; // We need to read the class, since we've not pre-parsed
-      if (sscanf(line, "%511s%511s%d%d%d%lf%f%f%f%d", classname, name, &logical_id,
-                 &calibrate_gyros, &tare, &frames_per_second, &red_LED,
-                 &green_LED, &blue_LED, &LED_mode) != 10) {
-          fprintf(stderr, "Bad setup_YEI_3Space_Sensor_Wireless line: %s\n", line);
-          return -1;
-      }
-
-      // If the last character in the line is a backslash, '\', then
-      // the following line is an additional command to send to the
-      // YEI at reset time. So long as we find lines with backslashes
-      // at the ends, we add them to the command list to send. Note
-      // that there is a newline at the end of the line, following the
-      // backslash.
-      num_reset_commands = 0;
-      while (line[strlen(line) - 2] == '\\') {
-          // Read the VRPN_CONFIG_NEXT line
-          if (fgets(line, LINESIZE, config_file) == NULL) {
-              fprintf(
-                  stderr,
-                  "Ran past end of config file in YEI description\n");
-              return -1;
-          }
-
-          // Copy the first string from the line into a new character
-          // array and then store this into the reset_commands list
-          // if we haven't run out of room for them.
-          if (num_reset_commands < MAX_RESET_COMMANDS) {
-            char command[LINESIZE];
-            sscanf(line, "%s", command);
-            char *command_copy = new char[strlen(command)+1];
-            if (command_copy == NULL) {
-              fprintf(stderr, "Out of memory in YEI description\n");
-              return -1;
-            }
-            strcpy(command_copy, command);
-            reset_commands[num_reset_commands++] = command_copy;
-          }
-      }
-
-      // Open the device
-      if (verbose) {
-          printf("Opening setup_YEI_3Space_Sensor_Wireless: %s on the same port, baud %d\n",
-              name, baud_rate);
-          if (num_reset_commands > 0) {
-            printf("... additional reset commands follow:\n");
-            for (int i = 0; i < num_reset_commands; i++) {
-              printf("  %s\n", reset_commands[i]);
-            }
-          }
-      }
-      _devices->add(new vrpn_YEI_3Space_Sensor_Wireless(
-          name, connection,
-          logical_id, serial_fd, calibrate_gyros != 0, tare != 0,
-          frames_per_second, red_LED, green_LED, blue_LED, LED_mode,
-          reset_commands));
-
-      // Free up any additional-reset command data.
-      for (int i = 0; i < MAX_RESET_COMMANDS; i++) {
-        if (reset_commands[i] != NULL) {
-          delete [] reset_commands[i];
-          reset_commands[i] = NULL;
+        // Read the VRPN_CONFIG_NEXT line
+        if (fgets(line, LINESIZE, config_file) == NULL) {
+            fprintf(stderr, "Ran past end of config file in YEI description\n");
+            return -1;
         }
-      }
+
+        // Get the arguments (class, name, port, baud, calibrate_gyros, tare,
+        // frames_per_second.
+        char classname[LINESIZE]; // We need to read the class, since we've not
+                                  // pre-parsed
+        if (sscanf(line, "%511s%511s%d%d%d%lf%f%f%f%d", classname, name,
+                   &logical_id, &calibrate_gyros, &tare, &frames_per_second,
+                   &red_LED, &green_LED, &blue_LED, &LED_mode) != 10) {
+            fprintf(stderr, "Bad setup_YEI_3Space_Sensor_Wireless line: %s\n",
+                    line);
+            return -1;
+        }
+
+        // If the last character in the line is a backslash, '\', then
+        // the following line is an additional command to send to the
+        // YEI at reset time. So long as we find lines with backslashes
+        // at the ends, we add them to the command list to send. Note
+        // that there is a newline at the end of the line, following the
+        // backslash.
+        num_reset_commands = 0;
+        while (line[strlen(line) - 2] == '\\') {
+            // Read the VRPN_CONFIG_NEXT line
+            if (fgets(line, LINESIZE, config_file) == NULL) {
+                fprintf(stderr,
+                        "Ran past end of config file in YEI description\n");
+                return -1;
+            }
+
+            // Copy the first string from the line into a new character
+            // array and then store this into the reset_commands list
+            // if we haven't run out of room for them.
+            if (num_reset_commands < MAX_RESET_COMMANDS) {
+                char command[LINESIZE];
+                sscanf(line, "%s", command);
+                char *command_copy = new char[strlen(command) + 1];
+                if (command_copy == NULL) {
+                    fprintf(stderr, "Out of memory in YEI description\n");
+                    return -1;
+                }
+                strcpy(command_copy, command);
+                reset_commands[num_reset_commands++] = command_copy;
+            }
+        }
+
+        // Open the device
+        if (verbose) {
+            printf("Opening setup_YEI_3Space_Sensor_Wireless: %s on the same "
+                   "port, baud %d\n",
+                   name, baud_rate);
+            if (num_reset_commands > 0) {
+                printf("... additional reset commands follow:\n");
+                for (int i = 0; i < num_reset_commands; i++) {
+                    printf("  %s\n", reset_commands[i]);
+                }
+            }
+        }
+        _devices->add(new vrpn_YEI_3Space_Sensor_Wireless(
+            name, connection, logical_id, serial_fd, calibrate_gyros != 0,
+            tare != 0, frames_per_second, red_LED, green_LED, blue_LED,
+            LED_mode, reset_commands));
+
+        // Free up any additional-reset command data.
+        for (int i = 0; i < MAX_RESET_COMMANDS; i++) {
+            if (reset_commands[i] != NULL) {
+                delete[] reset_commands[i];
+                reset_commands[i] = NULL;
+            }
+        }
     } // End of while new devices ('/' at and of line)
 
     return 0;
 }
 
-int vrpn_Generic_Server_Object::setup_Tracker_DeadReckoning_Rotation(char *&pch, char *line,
-    FILE * /*config_file*/)
+int vrpn_Generic_Server_Object::setup_Tracker_DeadReckoning_Rotation(
+    char *&pch, char *line, FILE * /*config_file*/)
 {
     char name[LINESIZE], origName[LINESIZE];
     int numSensors;
@@ -4757,97 +5004,102 @@ int vrpn_Generic_Server_Object::setup_Tracker_DeadReckoning_Rotation(char *&pch,
 
     VRPN_CONFIG_NEXT();
     // Get the arguments (tracker_name, sensors, rate)
-    if (sscanf(pch, "%511s%511s%d%g", name, origName, &numSensors, &predictionTime) != 4) {
-        fprintf(stderr, "Bad vrpn_Tracker_DeadReckoning_Rotation line: %s\n", line);
+    if (sscanf(pch, "%511s%511s%d%g", name, origName, &numSensors,
+               &predictionTime) != 4) {
+        fprintf(stderr, "Bad vrpn_Tracker_DeadReckoning_Rotation line: %s\n",
+                line);
         return -1;
     }
 
     // Open the tracker
     if (verbose)
-        printf("Opening vrpn_Tracker_DeadReckoning_Rotation: %s from %s with %d sensors, prediction time %f\n", name,
-        origName, numSensors, predictionTime);
-    _devices->add(new vrpn_Tracker_DeadReckoning_Rotation(name, connection, origName,
-        numSensors, predictionTime));
+        printf("Opening vrpn_Tracker_DeadReckoning_Rotation: %s from %s with "
+               "%d sensors, prediction time %f\n",
+               name, origName, numSensors, predictionTime);
+    _devices->add(new vrpn_Tracker_DeadReckoning_Rotation(
+        name, connection, origName, numSensors, predictionTime));
 
     return 0;
 }
 
 int vrpn_Generic_Server_Object::setup_Oculus_DK1(char *&pch, char *line, FILE *)
 {
-  char s2[LINESIZE];
+    char s2[LINESIZE];
 
-  VRPN_CONFIG_NEXT();
-  int ret = sscanf(pch, "%511s", s2);
-  if (ret != 1) {
-    fprintf(stderr, "Bad Oculus_DK1 line: %s\n", line);
-    return -1;
-  }
+    VRPN_CONFIG_NEXT();
+    int ret = sscanf(pch, "%511s", s2);
+    if (ret != 1) {
+        fprintf(stderr, "Bad Oculus_DK1 line: %s\n", line);
+        return -1;
+    }
 
-  // Open the Oculus DK2
-  if (verbose) {
-    printf("Opening vrpn_Oculus_DK1\n");
-  }
+    // Open the Oculus DK2
+    if (verbose) {
+        printf("Opening vrpn_Oculus_DK1\n");
+    }
 
 #ifdef VRPN_USE_HID
-  // Open the tracker
-  _devices->add(new vrpn_Oculus_DK1(s2, connection));
+    // Open the tracker
+    _devices->add(new vrpn_Oculus_DK1(s2, connection));
 #else
-  fprintf(stderr,
-    "Oculus_DK1 driver works only with VRPN_USE_HID defined!\n");
+    fprintf(stderr,
+            "Oculus_DK1 driver works only with VRPN_USE_HID defined!\n");
 #endif
-  return 0; // successful completion
+    return 0; // successful completion
 }
 
-int vrpn_Generic_Server_Object::setup_Oculus_DK2_LEDs(char *&pch, char *line, FILE *)
+int vrpn_Generic_Server_Object::setup_Oculus_DK2_LEDs(char *&pch, char *line,
+                                                      FILE *)
 {
-  char s2[LINESIZE];
+    char s2[LINESIZE];
 
-  VRPN_CONFIG_NEXT();
-  int ret = sscanf(pch, "%511s", s2);
-  if (ret != 1) {
-    fprintf(stderr, "Bad Oculus_DK2_LEDs line: %s\n", line);
-    return -1;
-  }
+    VRPN_CONFIG_NEXT();
+    int ret = sscanf(pch, "%511s", s2);
+    if (ret != 1) {
+        fprintf(stderr, "Bad Oculus_DK2_LEDs line: %s\n", line);
+        return -1;
+    }
 
-  // Open the Oculus DK2
-  if (verbose) {
-    printf("Opening vrpn_Oculus_DK2\n");
-  }
+    // Open the Oculus DK2
+    if (verbose) {
+        printf("Opening vrpn_Oculus_DK2\n");
+    }
 
 #ifdef VRPN_USE_HID
-  // Open the tracker
-  _devices->add(new vrpn_Oculus_DK2_LEDs(s2, connection));
+    // Open the tracker
+    _devices->add(new vrpn_Oculus_DK2_LEDs(s2, connection));
 #else
-  fprintf(stderr,
-    "Oculus_DK2 driver works only with VRPN_USE_HID defined!\n");
+    fprintf(stderr,
+            "Oculus_DK2 driver works only with VRPN_USE_HID defined!\n");
 #endif
-  return 0; // successful completion
+    return 0; // successful completion
 }
 
-int vrpn_Generic_Server_Object::setup_Oculus_DK2_inertial(char *&pch, char *line, FILE *)
+int vrpn_Generic_Server_Object::setup_Oculus_DK2_inertial(char *&pch,
+                                                          char *line, FILE *)
 {
-  char s2[LINESIZE];
+    char s2[LINESIZE];
 
-  VRPN_CONFIG_NEXT();
-  int ret = sscanf(pch, "%511s", s2);
-  if (ret != 1) {
-    fprintf(stderr, "Bad Oculus_DK2_inertial line: %s\n", line);
-    return -1;
-  }
+    VRPN_CONFIG_NEXT();
+    int ret = sscanf(pch, "%511s", s2);
+    if (ret != 1) {
+        fprintf(stderr, "Bad Oculus_DK2_inertial line: %s\n", line);
+        return -1;
+    }
 
-  // Open the Oculus DK2
-  if (verbose) {
-    printf("Opening vrpn_Oculus_inertial\n");
-  }
+    // Open the Oculus DK2
+    if (verbose) {
+        printf("Opening vrpn_Oculus_inertial\n");
+    }
 
 #ifdef VRPN_USE_HID
-  // Open the tracker
-  _devices->add(new vrpn_Oculus_DK2_inertial(s2, connection));
+    // Open the tracker
+    _devices->add(new vrpn_Oculus_DK2_inertial(s2, connection));
 #else
-  fprintf(stderr,
-    "Oculus_DK2 driver works only with VRPN_USE_HID defined!\n");
+    fprintf(stderr,
+            "Oculus_DK2 driver works only with VRPN_USE_HID defined!\n");
 #endif
-  return 0; // successful completion
+    return 0; // successful completion
 }
 
 // This function will read one line of the vrpn_IMU_Axis_Param configuration
@@ -4855,7 +5107,8 @@ int vrpn_Generic_Server_Object::setup_Oculus_DK2_inertial(char *&pch, char *line
 // the file to read from, and the axis to fill in are passed as parameters.
 // It returns 0 on success and -1 on failure.
 
-int vrpn_Generic_Server_Object::get_IMU_Param_Line(char *line, vrpn_IMU_Axis_Params *params)
+int vrpn_Generic_Server_Object::get_IMU_Param_Line(char *line,
+                                                   vrpn_IMU_Axis_Params *params)
 {
     char name[LINESIZE];
     int channels[3];
@@ -4863,27 +5116,25 @@ int vrpn_Generic_Server_Object::get_IMU_Param_Line(char *line, vrpn_IMU_Axis_Par
     float scales[3];
 
     // Get the values from the line
-    if (sscanf(line, "%511s%d%g%g%d%g%g%d%g%g", name,
-               &channels[0], &offsets[0], &scales[0],
-               &channels[1], &offsets[1], &scales[1],
-               &channels[2], &offsets[2], &scales[2]
-              ) != 10) {
+    if (sscanf(line, "%511s%d%g%g%d%g%g%d%g%g", name, &channels[0], &offsets[0],
+               &scales[0], &channels[1], &offsets[1], &scales[1], &channels[2],
+               &offsets[2], &scales[2]) != 10) {
         fprintf(stderr, "IMU_Param Axis: Bad param line: %s\n", line);
         return -1;
     }
 
     params->name = name;
     for (size_t i = 0; i < 3; i++) {
-      params->channels[i] = channels[i];
-      params->offsets[i] = offsets[i];
-      params->scales[i] = scales[i];
+        params->channels[i] = channels[i];
+        params->offsets[i] = offsets[i];
+        params->scales[i] = scales[i];
     }
 
     return 0;
 }
 
 int vrpn_Generic_Server_Object::setup_IMU_Magnetometer(char *&pch, char *line,
-                                                        FILE *config_file)
+                                                       FILE *config_file)
 {
     char s2[LINESIZE];
     float f1;
@@ -4915,8 +5166,8 @@ int vrpn_Generic_Server_Object::setup_IMU_Magnetometer(char *&pch, char *line,
 
         // Parse the line
         if (get_IMU_Param_Line(line, &params)) {
-                fprintf(stderr, "Can't read params line for IMU_Magnetometer\n");
-                return -1;
+            fprintf(stderr, "Can't read params line for IMU_Magnetometer\n");
+            return -1;
         }
     }
 
@@ -4925,219 +5176,233 @@ int vrpn_Generic_Server_Object::setup_IMU_Magnetometer(char *&pch, char *line,
 }
 
 int vrpn_Generic_Server_Object::setup_IMU_SimpleCombiner(char *&pch, char *line,
-  FILE *config_file)
+                                                         FILE *config_file)
 {
-  char s2[LINESIZE];
-  float f1;
-  vrpn_IMU_Axis_Params accel, rotate;
-  char magname[LINESIZE];
+    char s2[LINESIZE];
+    float f1;
+    vrpn_IMU_Axis_Params accel, rotate;
+    char magname[LINESIZE];
 
-  VRPN_CONFIG_NEXT();
+    VRPN_CONFIG_NEXT();
 
-  if (sscanf(pch, "%511s%g", s2, &f1) != 2) {
-    fprintf(stderr, "Bad vrpn_IMU_SimpleCombiner line: %s\n", line);
-    return -1;
-  }
-
-  if (verbose) {
-    printf("Opening vrpn_IMU_SimpleCombiner: "
-      "%s with update rate %g\n",
-      s2, f1);
-  }
-
-  // Scan the following line in the configuration file to fill
-  // in the start-up parameters for the accelerometer
-  {
-    char line[LINESIZE];
-
-    // Read in the line
-    if (fgets(line, LINESIZE, config_file) == NULL) {
-      perror("vrpn_IMU_SimpleCombiner Can't read axis accelerometer line!");
-      return -1;
+    if (sscanf(pch, "%511s%g", s2, &f1) != 2) {
+        fprintf(stderr, "Bad vrpn_IMU_SimpleCombiner line: %s\n", line);
+        return -1;
     }
 
-    // Parse the line
-    if (get_IMU_Param_Line(line, &accel)) {
-      fprintf(stderr, "Can't read accelerometer line for vrpn_IMU_SimpleCombiner\n");
-      return -1;
-    }
-  }
-
-  // Scan the following line in the configuration file to fill
-  // in the start-up parameters for the rotational linear measurement
-  {
-    char line[LINESIZE];
-
-    // Read in the line
-    if (fgets(line, LINESIZE, config_file) == NULL) {
-      perror("vrpn_IMU_SimpleCombiner Can't read axis rotation line!");
-      return -1;
+    if (verbose) {
+        printf("Opening vrpn_IMU_SimpleCombiner: "
+               "%s with update rate %g\n",
+               s2, f1);
     }
 
-    // Parse the line
-    if (get_IMU_Param_Line(line, &rotate)) {
-      fprintf(stderr, "Can't read rotation line for vrpn_IMU_SimpleCombiner\n");
-      return -1;
+    // Scan the following line in the configuration file to fill
+    // in the start-up parameters for the accelerometer
+    {
+        char line[LINESIZE];
+
+        // Read in the line
+        if (fgets(line, LINESIZE, config_file) == NULL) {
+            perror(
+                "vrpn_IMU_SimpleCombiner Can't read axis accelerometer line!");
+            return -1;
+        }
+
+        // Parse the line
+        if (get_IMU_Param_Line(line, &accel)) {
+            fprintf(
+                stderr,
+                "Can't read accelerometer line for vrpn_IMU_SimpleCombiner\n");
+            return -1;
+        }
     }
-  }
 
-  // Scan the following line in the configuration file to fill
-  // in the name for the magnetometer
-  {
-    char line[LINESIZE];
+    // Scan the following line in the configuration file to fill
+    // in the start-up parameters for the rotational linear measurement
+    {
+        char line[LINESIZE];
 
-    // Read in the line
-    if (fgets(line, LINESIZE, config_file) == NULL) {
-      perror("vrpn_IMU_SimpleCombiner Can't read axis rotation line!");
-      return -1;
+        // Read in the line
+        if (fgets(line, LINESIZE, config_file) == NULL) {
+            perror("vrpn_IMU_SimpleCombiner Can't read axis rotation line!");
+            return -1;
+        }
+
+        // Parse the line
+        if (get_IMU_Param_Line(line, &rotate)) {
+            fprintf(stderr,
+                    "Can't read rotation line for vrpn_IMU_SimpleCombiner\n");
+            return -1;
+        }
     }
 
-    if (sscanf(line, "%511s", magname) != 1) {
-      fprintf(stderr, "Bad vrpn_IMU_SimpleCombiner magnetometer name: %s\n", line);
-      return -1;
-    }
-  }
+    // Scan the following line in the configuration file to fill
+    // in the name for the magnetometer
+    {
+        char line[LINESIZE];
 
-  vrpn_Tracker_IMU_Params params;
-  params.d_acceleration = accel;
-  params.d_rotational_vel = rotate;
-  params.d_magnetometer_name = magname;
-  if (params.d_magnetometer_name == "NULL") {
-    params.d_magnetometer_name.clear();
-  }
-  _devices->add(new vrpn_IMU_SimpleCombiner(s2, connection, &params, f1, false));
-  return 0;
+        // Read in the line
+        if (fgets(line, LINESIZE, config_file) == NULL) {
+            perror("vrpn_IMU_SimpleCombiner Can't read axis rotation line!");
+            return -1;
+        }
+
+        if (sscanf(line, "%511s", magname) != 1) {
+            fprintf(stderr,
+                    "Bad vrpn_IMU_SimpleCombiner magnetometer name: %s\n",
+                    line);
+            return -1;
+        }
+    }
+
+    vrpn_Tracker_IMU_Params params;
+    params.d_acceleration = accel;
+    params.d_rotational_vel = rotate;
+    params.d_magnetometer_name = magname;
+    if (params.d_magnetometer_name == "NULL") {
+        params.d_magnetometer_name.clear();
+    }
+    _devices->add(
+        new vrpn_IMU_SimpleCombiner(s2, connection, &params, f1, false));
+    return 0;
 }
 
-int vrpn_Generic_Server_Object::setup_nVidia_shield_USB(char *&pch, char *line, FILE *)
+int vrpn_Generic_Server_Object::setup_nVidia_shield_USB(char *&pch, char *line,
+                                                        FILE *)
 {
-  char s2[LINESIZE];
+    char s2[LINESIZE];
 
-  VRPN_CONFIG_NEXT();
-  int ret = sscanf(pch, "%511s", s2);
-  if (ret != 1) {
-    fprintf(stderr, "Bad nVidia_shield_USB line: %s\n", line);
-    return -1;
-  }
+    VRPN_CONFIG_NEXT();
+    int ret = sscanf(pch, "%511s", s2);
+    if (ret != 1) {
+        fprintf(stderr, "Bad nVidia_shield_USB line: %s\n", line);
+        return -1;
+    }
 
-  // Open the shield
-  if (verbose) {
-    printf("Opening vrpn_nVidia_shield_USB\n");
-  }
+    // Open the shield
+    if (verbose) {
+        printf("Opening vrpn_nVidia_shield_USB\n");
+    }
 
 #ifdef VRPN_USE_HID
-  _devices->add(new vrpn_nVidia_shield_USB(s2, connection));
+    _devices->add(new vrpn_nVidia_shield_USB(s2, connection));
 #else
-  fprintf(stderr,
-    "nVidia_shield_USB driver works only with VRPN_USE_HID defined!\n");
+    fprintf(stderr,
+            "nVidia_shield_USB driver works only with VRPN_USE_HID defined!\n");
 #endif
-  return 0; // successful completion
+    return 0; // successful completion
 }
 
-int vrpn_Generic_Server_Object::setup_nVidia_shield_stealth_USB(char *&pch, char *line, FILE *)
+int vrpn_Generic_Server_Object::setup_nVidia_shield_stealth_USB(char *&pch,
+                                                                char *line,
+                                                                FILE *)
 {
-  char s2[LINESIZE];
+    char s2[LINESIZE];
 
-  VRPN_CONFIG_NEXT();
-  int ret = sscanf(pch, "%511s", s2);
-  if (ret != 1) {
-    fprintf(stderr, "Bad nVidia_shield_stealth_USB line: %s\n", line);
-    return -1;
-  }
+    VRPN_CONFIG_NEXT();
+    int ret = sscanf(pch, "%511s", s2);
+    if (ret != 1) {
+        fprintf(stderr, "Bad nVidia_shield_stealth_USB line: %s\n", line);
+        return -1;
+    }
 
-  // Open the shield
-  if (verbose) {
-    printf("Opening vrpn_nVidia_shield_stealth_USB\n");
-  }
+    // Open the shield
+    if (verbose) {
+        printf("Opening vrpn_nVidia_shield_stealth_USB\n");
+    }
 
 #ifdef VRPN_USE_HID
-  _devices->add(new vrpn_nVidia_shield_stealth_USB(s2, connection));
+    _devices->add(new vrpn_nVidia_shield_stealth_USB(s2, connection));
 #else
-  fprintf(stderr,
-    "nVidia_shield_stealth_USB driver works only with VRPN_USE_HID defined!\n");
+    fprintf(stderr, "nVidia_shield_stealth_USB driver works only with "
+                    "VRPN_USE_HID defined!\n");
 #endif
-  return 0; // successful completion
+    return 0; // successful completion
 }
 
-int vrpn_Generic_Server_Object::setup_Adafruit_10DOF(char *&pch, char *line, FILE *)
+int vrpn_Generic_Server_Object::setup_Adafruit_10DOF(char *&pch, char *line,
+                                                     FILE *)
 {
-  char vrpnName[LINESIZE], devName[LINESIZE];
-  double interval;
+    char vrpnName[LINESIZE], devName[LINESIZE];
+    double interval;
 
-  VRPN_CONFIG_NEXT();
-  int ret = sscanf(pch, "%511s%511s%lg", vrpnName, devName, &interval);
-  if (ret != 3) {
-    fprintf(stderr, "Bad Adafruit_10DOF line: %s\n", line);
-    return -1;
-  }
+    VRPN_CONFIG_NEXT();
+    int ret = sscanf(pch, "%511s%511s%lg", vrpnName, devName, &interval);
+    if (ret != 3) {
+        fprintf(stderr, "Bad Adafruit_10DOF line: %s\n", line);
+        return -1;
+    }
 
-  // Open the Adafruit
-  if (verbose) {
-    printf("Opening Adafruit_10DOF\n");
-  }
+    // Open the Adafruit
+    if (verbose) {
+        printf("Opening Adafruit_10DOF\n");
+    }
 
 #ifdef VRPN_USE_I2CDEV
-  _devices->add(new vrpn_Adafruit_10DOF(vrpnName, connection, devName, interval));
+    _devices->add(
+        new vrpn_Adafruit_10DOF(vrpnName, connection, devName, interval));
 #else
-  fprintf(stderr,
-    "Adafruit_10DOF driver only compiled in when VRPN_USE_I2CDEV is defined!\n");
+    fprintf(stderr, "Adafruit_10DOF driver only compiled in when "
+                    "VRPN_USE_I2CDEV is defined!\n");
 #endif
-  return 0; // successful completion
+    return 0; // successful completion
 }
 
-int vrpn_Generic_Server_Object::setup_OzzMaker_BerryIMU(char *&pch, char *line, FILE *)
+int vrpn_Generic_Server_Object::setup_OzzMaker_BerryIMU(char *&pch, char *line,
+                                                        FILE *)
 {
-  char vrpnName[LINESIZE], devName[LINESIZE];
-  double interval;
+    char vrpnName[LINESIZE], devName[LINESIZE];
+    double interval;
 
-  VRPN_CONFIG_NEXT();
-  int ret = sscanf(pch, "%511s%511s%lg", vrpnName, devName, &interval);
-  if (ret != 3) {
-    fprintf(stderr, "Bad OzzMaker_BerryIMU line: %s\n", line);
-    return -1;
-  }
+    VRPN_CONFIG_NEXT();
+    int ret = sscanf(pch, "%511s%511s%lg", vrpnName, devName, &interval);
+    if (ret != 3) {
+        fprintf(stderr, "Bad OzzMaker_BerryIMU line: %s\n", line);
+        return -1;
+    }
 
-  // Open the device
-  if (verbose) {
-    printf("Opening OzzMaker_BerryIMU\n");
-  }
+    // Open the device
+    if (verbose) {
+        printf("Opening OzzMaker_BerryIMU\n");
+    }
 
 #ifdef VRPN_USE_I2CDEV
-  _devices->add(new vrpn_OzzMaker_BerryIMU(vrpnName, connection, devName, interval));
+    _devices->add(
+        new vrpn_OzzMaker_BerryIMU(vrpnName, connection, devName, interval));
 #else
-  fprintf(stderr,
-    "OzzMaker_BerryIMU driver only compiled in when VRPN_USE_I2CDEV is defined!\n");
+    fprintf(stderr, "OzzMaker_BerryIMU driver only compiled in when "
+                    "VRPN_USE_I2CDEV is defined!\n");
 #endif
-  return 0; // successful completion
+    return 0; // successful completion
 }
 
 int vrpn_Generic_Server_Object::setup_Laputa(char *&pch, char *line, FILE *)
 {
-  char s2[LINESIZE];
+    char s2[LINESIZE];
 
-  VRPN_CONFIG_NEXT();
-  int ret = sscanf(pch, "%511s", s2);
-  if (ret != 1) {
-    fprintf(stderr, "Bad Laputa line: %s\n", line);
-    return -1;
-  }
+    VRPN_CONFIG_NEXT();
+    int ret = sscanf(pch, "%511s", s2);
+    if (ret != 1) {
+        fprintf(stderr, "Bad Laputa line: %s\n", line);
+        return -1;
+    }
 
 #ifdef VRPN_USE_HID
-  // Open the Laputa
-  if (verbose) {
-    printf("Opening vrpn_Laputa\n");
-  }
+    // Open the Laputa
+    if (verbose) {
+        printf("Opening vrpn_Laputa\n");
+    }
 
-  // Open the tracker
-  _devices->add(new vrpn_Laputa(s2, connection));
+    // Open the tracker
+    _devices->add(new vrpn_Laputa(s2, connection));
 #else
-  fprintf(stderr,
-    "Laputa driver works only with VRPN_USE_HID defined!\n");
+    fprintf(stderr, "Laputa driver works only with VRPN_USE_HID defined!\n");
 #endif
-  return 0; // successful completion
+    return 0; // successful completion
 }
 
-int vrpn_Generic_Server_Object::setup_Vality_vGlass(char *&pch, char *line, FILE *)
+int vrpn_Generic_Server_Object::setup_Vality_vGlass(char *&pch, char *line,
+                                                    FILE *)
 {
     char s2[LINESIZE];
 
@@ -5220,15 +5485,17 @@ vrpn_Generic_Server_Object::vrpn_Generic_Server_Object(
 
             // Make sure the line wasn't too long
             if (strlen(line) >= LINESIZE - 1) {
-                fprintf(stderr, "vrpn_Generic_Server_Object::vrpn_Generic_"
-                                "Server_Object(): Line too long in config "
-                                "file: %s\n",
+                fprintf(stderr,
+                        "vrpn_Generic_Server_Object::vrpn_Generic_"
+                        "Server_Object(): Line too long in config "
+                        "file: %s\n",
                         line);
                 if (d_bail_on_open_error) {
                     d_doing_okay = false;
                     fclose(config_file);
                     return;
-                } else {
+                }
+                else {
                     continue; // Skip this line
                 }
             }
@@ -5255,25 +5522,30 @@ vrpn_Generic_Server_Object::vrpn_Generic_Server_Object(
             // copy for strtok work
             vrpn_strcpy(scrap, line);
             scrap[sizeof(scrap) - 1] = '\0';
-// Figure out the device from the name and handle appropriately
+            // Figure out the device from the name and handle appropriately
 
-// WARNING: SUBSTRINGS WILL MATCH THE EARLIER STRING, SO
-// ADD AN EMPTY SPACE TO THE END OF STATIC STRINGS!!!!
+            // WARNING: SUBSTRINGS WILL MATCH THE EARLIER STRING, SO
+            // ADD AN EMPTY SPACE TO THE END OF STATIC STRINGS!!!!
 
 #define VRPN_ISIT(s) !strcmp(pch = strtok(scrap, " \t"), s)
 #define VRPN_CHECK(s)                                                          \
     try {                                                                      \
-      retval = (s)(pch, line, config_file);                                    \
-    } catch (const std::exception& e) {                                        \
+        retval = (s)(pch, line, config_file);                                  \
+    }                                                                          \
+    catch (const std::exception &e) {                                          \
         d_doing_okay = false;                                                  \
-        fprintf(stderr, "vrpn_Generic_Server_Object::vrpn_Generic_Server_Object(): " \
-          "Unexpected exception (%s)\n", e.what());                            \
+        fprintf(stderr,                                                        \
+                "vrpn_Generic_Server_Object::vrpn_Generic_Server_Object(): "   \
+                "Unexpected exception (%s)\n",                                 \
+                e.what());                                                     \
         fclose(config_file);                                                   \
         return;                                                                \
-    } catch (...) {                                                            \
+    }                                                                          \
+    catch (...) {                                                              \
         d_doing_okay = false;                                                  \
-        fprintf(stderr, "vrpn_Generic_Server_Object::vrpn_Generic_Server_Object(): " \
-          "Unexpected exception (out of memory?)\n");                          \
+        fprintf(stderr,                                                        \
+                "vrpn_Generic_Server_Object::vrpn_Generic_Server_Object(): "   \
+                "Unexpected exception (out of memory?)\n");                    \
         fclose(config_file);                                                   \
         return;                                                                \
     }                                                                          \
@@ -5281,7 +5553,8 @@ vrpn_Generic_Server_Object::vrpn_Generic_Server_Object(
         d_doing_okay = false;                                                  \
         fclose(config_file);                                                   \
         return;                                                                \
-    } else {                                                                   \
+    }                                                                          \
+    else {                                                                     \
         continue;                                                              \
     }
 
@@ -5362,6 +5635,9 @@ vrpn_Generic_Server_Object::vrpn_Generic_Server_Object(
             }
             else if (VRPN_ISIT("vrpn_Tracker_Dyna")) {
                 VRPN_CHECK(setup_Tracker_Dyna);
+            }
+            else if (VRPN_ISIT("vrpn_Tracker_LeapMotion")) {
+                VRPN_CHECK(setup_Tracker_LeapMotion);
             }
             else if (VRPN_ISIT("vrpn_Tracker_Fastrak")) {
                 VRPN_CHECK(setup_Tracker_Fastrak);
@@ -5499,35 +5775,35 @@ vrpn_Generic_Server_Object::vrpn_Generic_Server_Object(
                 }
                 else if (VRPN_ISIT("vrpn_Contour_ShuttleXpress")) {
                     VRPN_CHECK(templated_setup_HID_device_name_only<
-                        vrpn_Contour_ShuttleXpress>);
+                               vrpn_Contour_ShuttleXpress>);
                 }
-		else if (VRPN_ISIT("vrpn_Contour_ShuttlePROv2")) {
-			VRPN_CHECK(templated_setup_HID_device_name_only<
-				vrpn_Contour_ShuttlePROv2>);
-		}
-		else if (VRPN_ISIT("vrpn_Retrolink_GameCube")) {
+                else if (VRPN_ISIT("vrpn_Contour_ShuttlePROv2")) {
                     VRPN_CHECK(templated_setup_HID_device_name_only<
-                        vrpn_Retrolink_GameCube>);
+                               vrpn_Contour_ShuttlePROv2>);
+                }
+                else if (VRPN_ISIT("vrpn_Retrolink_GameCube")) {
+                    VRPN_CHECK(templated_setup_HID_device_name_only<
+                               vrpn_Retrolink_GameCube>);
                 }
                 else if (VRPN_ISIT("vrpn_Retrolink_Genesis")) {
                     VRPN_CHECK(templated_setup_HID_device_name_only<
-                        vrpn_Retrolink_Genesis>);
+                               vrpn_Retrolink_Genesis>);
                 }
                 else if (VRPN_ISIT("vrpn_Contour_ShuttleXpress")) {
                     VRPN_CHECK(templated_setup_HID_device_name_only<
-                        vrpn_Contour_ShuttleXpress>);
+                               vrpn_Contour_ShuttleXpress>);
                 }
                 else if (VRPN_ISIT("vrpn_Futaba_InterLink_Elite")) {
                     VRPN_CHECK(templated_setup_HID_device_name_only<
-                        vrpn_Futaba_InterLink_Elite>);
+                               vrpn_Futaba_InterLink_Elite>);
                 }
                 else if (VRPN_ISIT("vrpn_Griffin_PowerMate")) {
                     VRPN_CHECK(templated_setup_HID_device_name_only<
-                        vrpn_Griffin_PowerMate>);
+                               vrpn_Griffin_PowerMate>);
                 }
                 else if (VRPN_ISIT("vrpn_Xkeys_Desktop")) {
                     VRPN_CHECK(templated_setup_HID_device_name_only<
-                        vrpn_Xkeys_Desktop>);
+                               vrpn_Xkeys_Desktop>);
                 }
                 else if (VRPN_ISIT("vrpn_Xkeys_Pro")) {
                     VRPN_CHECK(
@@ -5535,23 +5811,23 @@ vrpn_Generic_Server_Object::vrpn_Generic_Server_Object(
                 }
                 else if (VRPN_ISIT("vrpn_Xkeys_Joystick")) {
                     VRPN_CHECK(templated_setup_HID_device_name_only<
-                        vrpn_Xkeys_Joystick>);
+                               vrpn_Xkeys_Joystick>);
                 }
                 else if (VRPN_ISIT("vrpn_Xkeys_Joystick12")) {
                     VRPN_CHECK(templated_setup_HID_device_name_only<
-                        vrpn_Xkeys_Joystick12>);
+                               vrpn_Xkeys_Joystick12>);
                 }
                 else if (VRPN_ISIT("vrpn_Xkeys_Jog_And_Shuttle")) {
                     VRPN_CHECK(templated_setup_HID_device_name_only<
-                        vrpn_Xkeys_Jog_And_Shuttle>);
+                               vrpn_Xkeys_Jog_And_Shuttle>);
                 }
                 else if (VRPN_ISIT("vrpn_Xkeys_Jog_And_Shuttle12")) {
                     VRPN_CHECK(templated_setup_HID_device_name_only<
-                        vrpn_Xkeys_Jog_And_Shuttle12>);
+                               vrpn_Xkeys_Jog_And_Shuttle12>);
                 }
                 else if (VRPN_ISIT("vrpn_Xkeys_Jog_And_Shuttle68")) {
                     VRPN_CHECK(templated_setup_HID_device_name_only<
-                        vrpn_Xkeys_Jog_And_Shuttle68>);
+                               vrpn_Xkeys_Jog_And_Shuttle68>);
                 }
                 else if (VRPN_ISIT("vrpn_Xkeys_XK3")) {
                     VRPN_CHECK(
@@ -5559,76 +5835,78 @@ vrpn_Generic_Server_Object::vrpn_Generic_Server_Object(
                 }
                 else if (VRPN_ISIT("vrpn_Logitech_Extreme_3D_Pro")) {
                     VRPN_CHECK(templated_setup_HID_device_name_only<
-                        vrpn_Logitech_Extreme_3D_Pro>);
+                               vrpn_Logitech_Extreme_3D_Pro>);
                 }
                 else if (VRPN_ISIT("vrpn_Saitek_ST290_Pro")) {
                     VRPN_CHECK(templated_setup_HID_device_name_only<
-                        vrpn_Saitek_ST290_Pro>);
+                               vrpn_Saitek_ST290_Pro>);
                 }
                 else if (VRPN_ISIT("vrpn_CHProducts_Fighterstick_USB")) {
                     VRPN_CHECK(templated_setup_HID_device_name_only<
-                        vrpn_CHProducts_Fighterstick_USB>);
+                               vrpn_CHProducts_Fighterstick_USB>);
                 }
                 else if (VRPN_ISIT("vrpn_3DConnexion_Navigator")) {
                     VRPN_CHECK(templated_setup_device_name_only<
-                        vrpn_3DConnexion_Navigator>);
+                               vrpn_3DConnexion_Navigator>);
                 }
                 else if (VRPN_ISIT(
                              "vrpn_3DConnexion_Navigator_for_Notebooks")) {
                     VRPN_CHECK(templated_setup_device_name_only<
-                        vrpn_3DConnexion_Navigator_for_Notebooks>);
+                               vrpn_3DConnexion_Navigator_for_Notebooks>);
                 }
                 else if (VRPN_ISIT("vrpn_3DConnexion_Traveler")) {
                     VRPN_CHECK(templated_setup_device_name_only<
-                        vrpn_3DConnexion_Traveler>);
+                               vrpn_3DConnexion_Traveler>);
                 }
                 else if (VRPN_ISIT("vrpn_3DConnexion_SpaceExplorer")) {
                     VRPN_CHECK(templated_setup_device_name_only<
-                        vrpn_3DConnexion_SpaceExplorer>);
+                               vrpn_3DConnexion_SpaceExplorer>);
                 }
                 else if (VRPN_ISIT("vrpn_3DConnexion_SpaceMouse")) {
                     VRPN_CHECK(templated_setup_device_name_only<
-                        vrpn_3DConnexion_SpaceMouse>);
+                               vrpn_3DConnexion_SpaceMouse>);
                 }
                 else if (VRPN_ISIT("vrpn_3DConnexion_SpaceMousePro")) {
                     VRPN_CHECK(templated_setup_device_name_only<
-                        vrpn_3DConnexion_SpaceMousePro>);
+                               vrpn_3DConnexion_SpaceMousePro>);
                 }
                 else if (VRPN_ISIT("vrpn_3DConnexion_SpaceMouseWireless")) {
                     VRPN_CHECK(templated_setup_device_name_only<
-                        vrpn_3DConnexion_SpaceMouseWireless>);
+                               vrpn_3DConnexion_SpaceMouseWireless>);
                 }
                 else if (VRPN_ISIT("vrpn_3DConnexion_SpaceBall5000")) {
                     VRPN_CHECK(templated_setup_device_name_only<
-                        vrpn_3DConnexion_SpaceBall5000>);
+                               vrpn_3DConnexion_SpaceBall5000>);
                 }
                 else if (VRPN_ISIT("vrpn_3DConnexion_SpacePilot")) {
                     VRPN_CHECK(templated_setup_device_name_only<
-                        vrpn_3DConnexion_SpacePilot>);
+                               vrpn_3DConnexion_SpacePilot>);
                 }
                 else if (VRPN_ISIT("vrpn_Microsoft_SideWinder_Precision_2")) {
                     VRPN_CHECK(templated_setup_HID_device_name_only<
-                        vrpn_Microsoft_SideWinder_Precision_2>);
+                               vrpn_Microsoft_SideWinder_Precision_2>);
                 }
                 else if (VRPN_ISIT("vrpn_Microsoft_SideWinder")) {
                     VRPN_CHECK(templated_setup_HID_device_name_only<
-                        vrpn_Microsoft_SideWinder>);
+                               vrpn_Microsoft_SideWinder>);
                 }
                 else if (VRPN_ISIT("vrpn_Microsoft_Controller_Raw_Xbox_S")) {
                     VRPN_CHECK(templated_setup_HID_device_name_only<
-                        vrpn_Microsoft_Controller_Raw_Xbox_S>);
+                               vrpn_Microsoft_Controller_Raw_Xbox_S>);
                 }
                 else if (VRPN_ISIT("vrpn_Microsoft_Controller_Raw_Xbox_360")) {
                     VRPN_CHECK(templated_setup_HID_device_name_only<
-                        vrpn_Microsoft_Controller_Raw_Xbox_360>);
+                               vrpn_Microsoft_Controller_Raw_Xbox_360>);
                 }
-                else if (VRPN_ISIT("vrpn_Microsoft_Controller_Raw_Xbox_360_Wireless")) {
-                    VRPN_CHECK(templated_setup_HID_device_name_only<
-                        vrpn_Microsoft_Controller_Raw_Xbox_360_Wireless>);
+                else if (VRPN_ISIT("vrpn_Microsoft_Controller_Raw_Xbox_360_"
+                                   "Wireless")) {
+                    VRPN_CHECK(
+                        templated_setup_HID_device_name_only<
+                            vrpn_Microsoft_Controller_Raw_Xbox_360_Wireless>);
                 }
                 else if (VRPN_ISIT("vrpn_Afterglow_Ax1_For_Xbox_360")) {
                     VRPN_CHECK(templated_setup_HID_device_name_only<
-                        vrpn_Afterglow_Ax1_For_Xbox_360>);
+                               vrpn_Afterglow_Ax1_For_Xbox_360>);
                 }
                 else if (VRPN_ISIT("vrpn_Tracker_MotionNode")) {
                     VRPN_CHECK(setup_Tracker_MotionNode);
@@ -5651,8 +5929,8 @@ vrpn_Generic_Server_Object::vrpn_Generic_Server_Object(
                 else if (VRPN_ISIT("vrpn_Tracker_TrivisioColibri")) {
                     VRPN_CHECK(setup_Tracker_TrivisioColibri);
                 }
-                else if (VRPN_ISIT ("vrpn_Tracker_Colibri")) {
-                    VRPN_CHECK (setup_Tracker_Colibri);
+                else if (VRPN_ISIT("vrpn_Tracker_Colibri")) {
+                    VRPN_CHECK(setup_Tracker_Colibri);
                 }
                 else if (VRPN_ISIT("vrpn_Tracker_SpacePoint")) {
                     VRPN_CHECK(setup_SpacePoint);
@@ -5674,7 +5952,7 @@ vrpn_Generic_Server_Object::vrpn_Generic_Server_Object(
                 }
                 else if (VRPN_ISIT("vrpn_Dream_Cheeky_USB_roll_up_drums")) {
                     VRPN_CHECK(templated_setup_HID_device_name_only<
-                        vrpn_DreamCheeky_Drum_Kit>);
+                               vrpn_DreamCheeky_Drum_Kit>);
                 }
                 else if (VRPN_ISIT("vrpn_LUDL_USBMAC6000")) {
                     VRPN_CHECK(setup_LUDL_USBMAC6000);
@@ -5700,7 +5978,7 @@ vrpn_Generic_Server_Object::vrpn_Generic_Server_Object(
                 else if (VRPN_ISIT("vrpn_Tracker_RazerHydra")) {
                     VRPN_CHECK(setup_Tracker_RazerHydra);
                 }
-                else if (VRPN_ISIT ("vrpn_Tracker_ThalmicLabsMyo")) {
+                else if (VRPN_ISIT("vrpn_Tracker_ThalmicLabsMyo")) {
                     VRPN_CHECK(setup_Tracker_ThalmicLabsMyo);
                 }
                 else if (VRPN_ISIT("vrpn_Tracker_zSight")) {
@@ -5731,47 +6009,47 @@ vrpn_Generic_Server_Object::vrpn_Generic_Server_Object(
                     VRPN_CHECK(setup_Tracker_DeadReckoning_Rotation);
                 }
                 else if (VRPN_ISIT("vrpn_Oculus_DK1")) {
-                  VRPN_CHECK(setup_Oculus_DK1);
+                    VRPN_CHECK(setup_Oculus_DK1);
                 }
                 else if (VRPN_ISIT("vrpn_Oculus_DK2_LEDs")) {
-                  VRPN_CHECK(setup_Oculus_DK2_LEDs);
+                    VRPN_CHECK(setup_Oculus_DK2_LEDs);
                 }
                 else if (VRPN_ISIT("vrpn_Oculus_DK2_inertial")) {
-                  VRPN_CHECK(setup_Oculus_DK2_inertial);
+                    VRPN_CHECK(setup_Oculus_DK2_inertial);
                 }
                 else if (VRPN_ISIT("vrpn_IMU_Magnetometer")) {
                     VRPN_CHECK(setup_IMU_Magnetometer);
                 }
                 else if (VRPN_ISIT("vrpn_IMU_SimpleCombiner")) {
-                  VRPN_CHECK(setup_IMU_SimpleCombiner);
+                    VRPN_CHECK(setup_IMU_SimpleCombiner);
                 }
                 else if (VRPN_ISIT("vrpn_nVidia_shield_USB")) {
-                  VRPN_CHECK(setup_nVidia_shield_USB);
+                    VRPN_CHECK(setup_nVidia_shield_USB);
                 }
                 else if (VRPN_ISIT("vrpn_nVidia_shield_stealth_USB")) {
-                  VRPN_CHECK(setup_nVidia_shield_stealth_USB);
+                    VRPN_CHECK(setup_nVidia_shield_stealth_USB);
                 }
                 else if (VRPN_ISIT("vrpn_Tracker_Spin")) {
-                  VRPN_CHECK(setup_Tracker_Spin);
+                    VRPN_CHECK(setup_Tracker_Spin);
                 }
                 else if (VRPN_ISIT("vrpn_Adafruit_10DOF")) {
-                  VRPN_CHECK(setup_Adafruit_10DOF);
+                    VRPN_CHECK(setup_Adafruit_10DOF);
                 }
                 else if (VRPN_ISIT("vrpn_OzzMaker_BerryIMU")) {
-                  VRPN_CHECK(setup_OzzMaker_BerryIMU);
+                    VRPN_CHECK(setup_OzzMaker_BerryIMU);
                 }
-                else if (VRPN_ISIT("vrpn_Laputa")){
+                else if (VRPN_ISIT("vrpn_Laputa")) {
                     VRPN_CHECK(setup_Laputa);
                 }
                 else if (VRPN_ISIT("vrpn_Vality_vGlass")) {
-                  VRPN_CHECK(setup_Vality_vGlass);
+                    VRPN_CHECK(setup_Vality_vGlass);
                 }
                 else {                         // Never heard of it
                     sscanf(line, "%511s", s1); // Find out the class name
                     fprintf(stderr, "vrpn_server: Unknown Device: %s\n", s1);
                     if (d_bail_on_open_error) {
                         d_doing_okay = false;
-                        fclose(config_file);                                                   \
+                        fclose(config_file);
                         return;
                     }
                     else {

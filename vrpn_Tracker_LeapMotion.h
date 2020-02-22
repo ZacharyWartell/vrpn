@@ -16,8 +16,37 @@ Stage I - copy code from vrpn_Tracker_NULL
 //#define LEAP_API_INTERNAL true
 #include "Leap.h"
 #include "vrpn_Tracker.h"
+#include <list>
 
 class VRPN_API vrpn_RedundantTransmission;
+
+/*
+@author Zachary Wartell
+@brief C++ wrapper for C q_vec_type [work-in-progress]
+*/
+class q_vec {
+public:
+    inline q_vec(q_vec_type v0) { q_vec_copy(v, v0); }
+    inline q_vec(double x, double y, double z)
+    {
+        v[0] = x;
+        v[1] = y;
+        v[2] = z;
+    }
+
+    operator double *() { return &v[0]; }
+    operator const double *() { return &v[0]; }
+
+    friend inline q_vec operator+(const q_vec &v1, const q_vec &v2)
+    {
+        q_vec_type t;
+        q_vec_add(t, v1.v, v2.v);
+        return q_vec(t);
+    }
+
+private:
+    q_vec_type v;
+};
 
 class VRPN_API vrpn_CoordinateSystem {
 public:
@@ -50,6 +79,9 @@ public:
     virtual void mainloop();
 
     void setRedundantTransmission(vrpn_RedundantTransmission *);
+
+    enum struct Finger { Thumb, Index, Middle, Ring, Pinky };
+    enum struct Bone { Metacarpal, Proximal, Middle, Distal };
 
 #if 0
     enum struct Finger { Thumb, Index, Middle, Ring, Pinky };
@@ -107,24 +139,24 @@ public:
     Hand rightHand;
 
     /*
-    \brief left hand is with in order that data members are listed vrpn_Tracker_LeapMotion::Hand,
-           then right hand.
+    \brief left hand is with in order that data members are listed
+    vrpn_Tracker_LeapMotion::Hand, then right hand.
     */
     inline vrpn_CoordinateSystem &bySensorID(unsigned int sid)
     {
         if (sid < 3)
             return *(&leftHand.elbow + sid);
-        else if (sid < 3+Hand::FINGER_SENSORS)
-            return *(&leftHand.thumbMetacarpal + sid-3);
-        else if (sid < Hand::FINGER_SENSORS*2+3)
-            return *(&rightHand.elbow + sid-(Hand::FINGER_SENSORS*2+3));
+        else if (sid < 3 + Hand::FINGER_SENSORS)
+            return *(&leftHand.thumbMetacarpal + sid - 3);
+        else if (sid < Hand::FINGER_SENSORS * 2 + 3)
+            return *(&rightHand.elbow + sid - (Hand::FINGER_SENSORS * 2 + 3));
         else
             return *(&rightHand.thumbMetacarpal +
                      (sid - (Hand::FINGER_SENSORS * 2 + 3)));
     }
 
 protected:
-    bool debugOutput=false;
+    bool debugOutput = false;
     vrpn_float64 update_rate;
 
     vrpn_RedundantTransmission *d_redundancy;
@@ -151,6 +183,63 @@ private:
     };
     Listener listener;
     Leap::Controller controller;
+
+public:
+    class VRPN_API Eyes {
+    public:
+        Eyes();
+
+        inline q_vec_type &left()
+        {
+            q_vec_add(left_, middle, toLeft);
+            return left_;
+        }
+        inline q_vec_type &right()
+        {
+            q_vec_subtract(right_, middle, toLeft);
+            return right_;
+        }
+        inline float separation() const { return separation_; }
+        inline void separation(float s)
+        {
+            separation_ = s;
+            q_vec_subtract(toLeft, leftMarker, rightMarker);
+            q_vec_normalize(toLeft, toLeft);
+            q_vec_scale(toLeft, s * 0.5, toLeft);
+        }
+
+    private:
+        void updateMarkers();
+
+    private:
+        q_vec_type left_;
+        q_vec_type right_;
+        float separation_;
+
+        q_vec toLeft;
+        q_vec middle;
+        q_vec leftMarker;
+        q_vec rightMarker;
+
+        struct VisionTracking {
+            VisionTracking();
+            void update();
+            std::list<q_vec> leftMarkerQueue;
+            std::list<q_vec> rightMarkerQueue;
+
+#ifdef USE_GLASSES_TRACKING
+            cv::Ptr<FeatureDetector> blobDetector;
+#endif
+            bool leapInit;
+#if 0
+            leftcvUnstretched = new OpenCV(this, 640, 240);
+            rightcvUnstretched = new OpenCV(this, 640, 240);
+            leftcv = new OpenCV(this, 640, 480);
+            rightcv = new OpenCV(this, 640, 480);
+#endif
+        };
+        VisionTracking visionTracking;
+    };
 };
 
 // End of vrpn_LEAP_MOTION_TRACKER_H

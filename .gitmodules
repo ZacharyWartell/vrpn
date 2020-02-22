@@ -8,3 +8,6 @@
 [submodule "submodules/LeapSDK"]
 	path = submodules/LeapSDK
 	url = https://cci-git.uncc.edu/UNCC_Graphics/LeapSDK.git
+[submodule "submodules/opencv"]
+	path = submodules/opencv
+	url = https://github.com/opencv/opencv.git

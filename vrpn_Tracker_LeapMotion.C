@@ -52,9 +52,7 @@ static const std::string boneNames[] = {"Metacarpal", "Proximal", "Middle",
 static const std::string stateNames[] = {"STATE_INVALID", "STATE_START",
                                          "STATE_UPDATE", "STATE_END"};
 
-
-
-vrpn_Tracker_LeapMotion::Hand::Hand() 
+vrpn_Tracker_LeapMotion::Hand::Hand()
 {
     thumbMetacarpal.child = &thumbProximal;
     thumbProximal.child = &thumbMiddle;
@@ -77,26 +75,25 @@ vrpn_Tracker_LeapMotion::Hand::Hand()
     pinkyMiddle.child = &pinkyDistal;
 }
 
-
 /*
 @uathor Zachary Wartell
 @brief
 
 - Stage I - copy code from vrpn_Tracker_NULL
 */
-vrpn_Tracker_LeapMotion::vrpn_Tracker_LeapMotion(const char *name,
-                                                 vrpn_Connection *c,
+vrpn_Tracker_LeapMotion::vrpn_Tracker_LeapMotion(const char* name,
+                                                 vrpn_Connection* c,
                                                  vrpn_int32 sensors,
                                                  vrpn_float64 Hz)
     : vrpn_Tracker(name, c)
     , update_rate(Hz)
     , d_redundancy(NULL)
 {
-    //num_sensors = sensors;
+    num_sensors = sensors;
+    // num_sensors = sensors;
     num_sensors = 2 * Hand::HAND_SENSORS;
-                                   
-    register_server_handlers();
 
+    register_server_handlers();
 
     // Have the sample listener receive events from the controller
     listener.vrpnTracker = this;
@@ -107,7 +104,6 @@ vrpn_Tracker_LeapMotion::vrpn_Tracker_LeapMotion(const char *name,
     if (argc > 1 && strcmp(argv[1], "--bg") == 0)
         controller.setPolicy(Leap::Leap::Controller::POLICY_BACKGROUND_FRAMES);
 #endif
-
 }
 
 /*
@@ -118,62 +114,60 @@ vrpn_Tracker_LeapMotion::vrpn_Tracker_LeapMotion(const char *name,
 */
 void vrpn_Tracker_LeapMotion::mainloop()
 {
-        struct timeval current_time;
-        char msgbuf[1000];
-        vrpn_int32 i, len;
+    struct timeval current_time;
+    char msgbuf[1000];
+    vrpn_int32 i, len;
 
-        // Call the generic server mainloop routine, since this is a server
-        server_mainloop();
+    // Call the generic server mainloop routine, since this is a server
+    server_mainloop();
 
-        // See if its time to generate a new report
-        vrpn_gettimeofday(&current_time, NULL);
-        if (vrpn_TimevalDuration(current_time, timestamp) >=
-            1000000.0 / update_rate) {
+    // See if its time to generate a new report
+    vrpn_gettimeofday(&current_time, NULL);
+    if (vrpn_TimevalDuration(current_time, timestamp) >=
+        1000000.0 / update_rate) {
 
-            // Update the time
-            timestamp.tv_sec = current_time.tv_sec;
-            timestamp.tv_usec = current_time.tv_usec;
+        // Update the time
+        timestamp.tv_sec = current_time.tv_sec;
+        timestamp.tv_usec = current_time.tv_usec;
 
-            // Send messages for all sensors if we have a connection
-            if (d_redundancy) {
-                for (i = 0; i < num_sensors; i++) {
-                    d_sensor = i;
+        // Send messages for all sensors if we have a connection
+        if (d_redundancy) {
+            for (i = 0; i < num_sensors; i++) {
+                d_sensor = i;
 
-                    const vrpn_CoordinateSystem& sensorCS = bySensorID(i);
-                    q_vec_copy(pos, sensorCS.location);
-                    q_vec_copy(d_quat, sensorCS.location);
+                const vrpn_CoordinateSystem& sensorCS = bySensorID(i);
+                q_vec_copy(pos, sensorCS.location);
+                q_vec_copy(d_quat, sensorCS.location);
 
-                    // Pack position report
-                    len = encode_to(msgbuf);
-                    if (d_redundancy->pack_message(
-                            len, timestamp, position_m_id, d_sender_id, msgbuf,
-                            vrpn_CONNECTION_LOW_LATENCY)) {
-                        fprintf(stderr,
-                                "NULL tracker: can't write message: tossing\n");
-                    }
-            
+                // Pack position report
+                len = encode_to(msgbuf);
+                if (d_redundancy->pack_message(len, timestamp, position_m_id,
+                                               d_sender_id, msgbuf,
+                                               vrpn_CONNECTION_LOW_LATENCY)) {
+                    fprintf(stderr,
+                            "NULL tracker: can't write message: tossing\n");
                 }
             }
-            else if (d_connection) {
-                for (i = 0; i < num_sensors; i++) {
-                    d_sensor = i;
+        }
+        else if (d_connection) {
+            for (i = 0; i < num_sensors; i++) {
+                d_sensor = i;
 
-                    const vrpn_CoordinateSystem& sensorCS = bySensorID(i);
-                    q_vec_copy(pos, sensorCS.location);
-                    q_vec_copy(d_quat, sensorCS.location);
+                const vrpn_CoordinateSystem& sensorCS = bySensorID(i);
+                q_vec_copy(pos, sensorCS.location);
+                q_vec_copy(d_quat, sensorCS.location);
 
-                    // Pack position report
-                    len = encode_to(msgbuf);
-                    if (d_connection->pack_message(
-                            len, timestamp, position_m_id, d_sender_id, msgbuf,
-                            vrpn_CONNECTION_LOW_LATENCY)) {
-                        fprintf(stderr,
-                                "NULL tracker: can't write message: tossing\n");
-                    }
+                // Pack position report
+                len = encode_to(msgbuf);
+                if (d_connection->pack_message(len, timestamp, position_m_id,
+                                               d_sender_id, msgbuf,
+                                               vrpn_CONNECTION_LOW_LATENCY)) {
+                    fprintf(stderr,
+                            "NULL tracker: can't write message: tossing\n");
                 }
-
             }
-        }        
+        }
+    }
 }
 
 /*
@@ -185,14 +179,14 @@ void vrpn_Tracker_LeapMotion::mainloop()
 - Stage I - copy code from vrpn_Tracker.C
 */
 int vrpn_Tracker_LeapMotion::read_config_file(FILE* config_file,
-                                                  const char* tracker_name)
+                                              const char* tracker_name)
 {
 
     char line[512]; // line read from input file
-    //vrpn_int32 num_sens;
-    //vrpn_int32 which_sensor;
-    //float f[14];
-    //int i, j;
+    // vrpn_int32 num_sens;
+    // vrpn_int32 which_sensor;
+    // float f[14];
+    // int i, j;
 
     // Read lines from the file until we run out
     while (fgets(line, sizeof(line), config_file) != NULL) {
@@ -204,7 +198,7 @@ int vrpn_Tracker_LeapMotion::read_config_file(FILE* config_file,
         // find tracker name in file
         if ((!(strncmp(line, tracker_name, strlen(tracker_name)))) &&
             (isspace(line[strlen(tracker_name)]))) {
-            
+
             /**
             \todo Add LeapMotion specific config file items
             */
@@ -222,29 +216,28 @@ int vrpn_Tracker_LeapMotion::read_config_file(FILE* config_file,
 - Stage I - copy code from vrpn_Tracker_NULL
 */
 void vrpn_Tracker_LeapMotion::setRedundantTransmission(
-    vrpn_RedundantTransmission *t)
+    vrpn_RedundantTransmission* t)
 {
     d_redundancy = t;
 }
 
-vrpn_Tracker_LeapMotion::~vrpn_Tracker_LeapMotion() 
+vrpn_Tracker_LeapMotion::~vrpn_Tracker_LeapMotion()
 {
     // Remove the sample listener when done
     controller.removeListener(listener);
 }
 
-
-
-
 /*
 BEGIN COPY AND NODIFIY FROM Leap SDK Sample.cpp
 */
-void vrpn_Tracker_LeapMotion::Listener::onInit(const Leap::Controller& controller)
+void vrpn_Tracker_LeapMotion::Listener::onInit(
+    const Leap::Controller& controller)
 {
     std::cout << "Initialized" << std::endl;
 }
 
-void vrpn_Tracker_LeapMotion::Listener::onConnect(const Leap::Controller& controller)
+void vrpn_Tracker_LeapMotion::Listener::onConnect(
+    const Leap::Controller& controller)
 {
     std::cout << "Connected" << std::endl;
     controller.enableGesture(Leap::Gesture::TYPE_CIRCLE);
@@ -253,18 +246,21 @@ void vrpn_Tracker_LeapMotion::Listener::onConnect(const Leap::Controller& contro
     controller.enableGesture(Leap::Gesture::TYPE_SWIPE);
 }
 
-void vrpn_Tracker_LeapMotion::Listener::onDisconnect(const Leap::Controller& controller)
+void vrpn_Tracker_LeapMotion::Listener::onDisconnect(
+    const Leap::Controller& controller)
 {
     // Note: not dispatched when running in a debugger.
     std::cout << "Disconnected" << std::endl;
 }
 
-void vrpn_Tracker_LeapMotion::Listener::onExit(const Leap::Controller& controller)
+void vrpn_Tracker_LeapMotion::Listener::onExit(
+    const Leap::Controller& controller)
 {
     std::cout << "Exited" << std::endl;
 }
 
-void vrpn_Tracker_LeapMotion::Listener::onFrame(const Leap::Controller& controller)
+void vrpn_Tracker_LeapMotion::Listener::onFrame(
+    const Leap::Controller& controller)
 {
     // Get the most recent frame and report some basic information
     const Leap::Frame frame = controller.frame();
@@ -279,14 +275,16 @@ void vrpn_Tracker_LeapMotion::Listener::onFrame(const Leap::Controller& controll
     for (Leap::HandList::const_iterator hl = hands.begin(); hl != hands.end();
          ++hl) {
         // Get the first hand
-        const Leap::Hand hand = *hl;        
+        const Leap::Hand hand = *hl;
         std::string handType = hand.isLeft() ? "Left hand" : "Right hand";
         vrpn_Tracker_LeapMotion::Hand& vprnHand =
             hand.isLeft() ? vrpnTracker->leftHand : vrpnTracker->rightHand;
 
         if (vrpnTracker->debugOutput)
-            std::cout << std::string(2, ' ') << handType << ", id: " << hand.id()
-                      << ", palm position: " << hand.palmPosition() << std::endl;
+            std::cout << std::string(2, ' ') << handType
+                      << ", id: " << hand.id()
+                      << ", palm position: " << hand.palmPosition()
+                      << std::endl;
         // Get the hand's normal vector and direction
         const Leap::Vector normal = hand.palmNormal();
         const Leap::Vector direction = hand.direction();
@@ -294,18 +292,21 @@ void vrpn_Tracker_LeapMotion::Listener::onFrame(const Leap::Controller& controll
         // Calculate the hand's pitch, roll, and yaw angles
         if (vrpnTracker->debugOutput)
             std::cout << std::string(2, ' ')
-                      << "pitch: " << direction.pitch() * Leap::RAD_TO_DEG << " degrees, "
+                      << "pitch: " << direction.pitch() * Leap::RAD_TO_DEG
+                      << " degrees, "
                       << "roll: " << normal.roll() * Leap::RAD_TO_DEG
                       << " degrees, "
-                      << "yaw: " << direction.yaw() * Leap::RAD_TO_DEG << " degrees"
-                      << std::endl;
+                      << "yaw: " << direction.yaw() * Leap::RAD_TO_DEG
+                      << " degrees" << std::endl;
 
         // Get the Arm bone
         Leap::Arm arm = hand.arm();
         if (vrpnTracker->debugOutput)
-            std::cout << std::string(2, ' ') << "Arm direction: " << arm.direction()
+            std::cout << std::string(2, ' ')
+                      << "Arm direction: " << arm.direction()
                       << " wrist position: " << arm.wristPosition()
-                      << " elbow position: " << arm.elbowPosition() << std::endl;
+                      << " elbow position: " << arm.elbowPosition()
+                      << std::endl;
 
         // Get fingers
         const Leap::FingerList fingers = hand.fingers();
@@ -326,25 +327,23 @@ void vrpn_Tracker_LeapMotion::Listener::onFrame(const Leap::Controller& controll
                     std::cout << std::string(6, ' ') << boneNames[boneType]
                               << " bone, start: " << bone.prevJoint()
                               << ", end: " << bone.nextJoint()
-                              << ", direction: " << bone.direction() << std::endl;
-
+                              << ", direction: " << bone.direction()
+                              << std::endl;
 
                 // convert to coordinate system
-                vrpn_CoordinateSystem& fingerJoint = vprnHand.fingerJoint(finger.type(), boneType);
-                
-                q_vec_set(fingerJoint.location,
-                    bone.prevJoint()[0], bone.prevJoint()[1],
-                    bone.prevJoint()[2]);
+                vrpn_CoordinateSystem& fingerJoint =
+                    vprnHand.fingerJoint(finger.type(), boneType);
+
+                q_vec_set(fingerJoint.location, bone.prevJoint()[0],
+                          bone.prevJoint()[1], bone.prevJoint()[2]);
                 q_vec_type dir;
                 const q_vec_type Y = {0, 1, 0};
                 q_vec_set(dir, bone.direction()[0], bone.direction()[1],
                           bone.direction()[2]);
                 q_from_two_vecs(fingerJoint.quat, dir, Y);
-
             }
         }
     }
-
 
     // TODO: ZJW - probably leave this out for VRPN
 
@@ -358,7 +357,8 @@ void vrpn_Tracker_LeapMotion::Listener::onFrame(const Leap::Controller& controll
                   << ", direction: " << tool.direction() << std::endl;
     }
 
-    // TODO: ZJW - probably leave this out or VRPN or convert to VRPN Button "event"?
+    // TODO: ZJW - probably leave this out or VRPN or convert to VRPN Button
+    // "event"?
 
     // Get gestures
     const Leap::GestureList gestures = frame.gestures();
@@ -431,17 +431,20 @@ void vrpn_Tracker_LeapMotion::Listener::onFrame(const Leap::Controller& controll
     }
 }
 
-void vrpn_Tracker_LeapMotion::Listener::onFocusGained(const Leap::Controller& controller)
+void vrpn_Tracker_LeapMotion::Listener::onFocusGained(
+    const Leap::Controller& controller)
 {
     std::cout << "Focus Gained" << std::endl;
 }
 
-void vrpn_Tracker_LeapMotion::Listener::onFocusLost(const Leap::Controller& controller)
+void vrpn_Tracker_LeapMotion::Listener::onFocusLost(
+    const Leap::Controller& controller)
 {
     std::cout << "Focus Lost" << std::endl;
 }
 
-void vrpn_Tracker_LeapMotion::Listener::onDeviceChange(const Leap::Controller& controller)
+void vrpn_Tracker_LeapMotion::Listener::onDeviceChange(
+    const Leap::Controller& controller)
 {
     std::cout << "Device Changed" << std::endl;
     const Leap::DeviceList devices = controller.devices();
@@ -453,12 +456,14 @@ void vrpn_Tracker_LeapMotion::Listener::onDeviceChange(const Leap::Controller& c
     }
 }
 
-void vrpn_Tracker_LeapMotion::Listener::onServiceConnect(const Leap::Controller& controller)
+void vrpn_Tracker_LeapMotion::Listener::onServiceConnect(
+    const Leap::Controller& controller)
 {
     std::cout << "Service Connected" << std::endl;
 }
 
-void vrpn_Tracker_LeapMotion::Listener::onServiceDisconnect(const Leap::Controller& controller)
+void vrpn_Tracker_LeapMotion::Listener::onServiceDisconnect(
+    const Leap::Controller& controller)
 {
     std::cout << "Service Disconnected" << std::endl;
 }

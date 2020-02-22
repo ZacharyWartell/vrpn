@@ -71,6 +71,7 @@ protected:
     int setup_5dt(char *&pch, char *line, FILE * /*config_file*/);
     int setup_Wanda(char *&pch, char *line, FILE * /*config_file*/);
     int setup_Tracker_Dyna(char *&pch, char *line, FILE * /*config_file*/);
+    int setup_Tracker_LeapMotion(char *&pch, char *line, FILE *config_file);
     int setup_Tracker_Fastrak(char *&pch, char *line, FILE *config_file);
     int setup_Tracker_Isotrak(char *&pch, char *line, FILE *config_file);
     int setup_Tracker_Liberty(char *&pch, char *line, FILE *config_file);
