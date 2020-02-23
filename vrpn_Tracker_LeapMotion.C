@@ -4,6 +4,7 @@
 
 Stage I - copy code from vrpn_Tracker_NULL
 
+@copyright Copyright Zachary Wartell 2020.
 */
 
 /* BEGIN COPY FROM vrpn_Tracker.C */
@@ -32,6 +33,8 @@ Stage I - copy code from vrpn_Tracker_NULL
 #include "quat.h"
 #include "vrpn_RedundantTransmission.h" // for vrpn_RedundantTransmission
 #include "vrpn_Tracker_LeapMotion.h"
+
+using namespace vrpnExt;
 
 /* END COPY FROM vrpn_Tracker.C */
 
@@ -302,7 +305,7 @@ void vrpn_Tracker_LeapMotion::Listener::onFrame(
         // convert to VRPN CS
         q_vec_set(vrpnHand.palm.location, hand.palmPosition()[0], hand.palmPosition()[1],
                   hand.palmPosition()[2]);
-        // \todo check Leap vs VRPN convention for ypr (xyz vs yxz, etc.)
+        // \todo [BUG?] check Leap vs VRPN convention for ypr (xyz vs yxz, etc.)
         q_from_euler(vrpnHand.palm.quat, direction.yaw(), direction.pitch(),
                      direction.roll());
 
@@ -362,7 +365,7 @@ void vrpn_Tracker_LeapMotion::Listener::onFrame(
         }
     }
 
-    // TODO: ZJW - probably leave this out for VRPN
+    // \todo [PRIORIY=LOW] LM tools add into VRPN
 
     // Get tools
     const Leap::ToolList tools = frame.tools();
@@ -374,8 +377,7 @@ void vrpn_Tracker_LeapMotion::Listener::onFrame(
                   << ", direction: " << tool.direction() << std::endl;
     }
 
-    // TODO: ZJW - probably leave this out or VRPN or convert to VRPN Button
-    // "event"?
+    // \todo ZJW - probably leave this out or VRPN or convert to VRPN Button "event"?
 
     // Get gestures
     const Leap::GestureList gestures = frame.gestures();
@@ -487,3 +489,181 @@ void vrpn_Tracker_LeapMotion::Listener::onServiceDisconnect(
 /*
 END COPY AND NODIFIY FROM Leap SDK Sample.cpp
 */
+
+vrpn_Tracker_LeapMotion::GlassesTracking::GlassesTracking() : 
+    leftCamLeftMarker(q_vec::ZERO_VECTOR()), 
+    leftCamRightMarker(q_vec::ZERO_VECTOR()), 
+    rightCamLeftMarker(q_vec::ZERO_VECTOR()), 
+    rightCamRightMarker(q_vec::ZERO_VECTOR()),
+    leftMarkerPos(q_vec::ZERO_VECTOR()),
+    leftMarkerPosAvg(q_vec::ZERO_VECTOR()),
+    rightMarkerPosAvg(q_vec::ZERO_VECTOR())    
+{
+}
+
+
+void vrpn_Tracker_LeapMotion::GlassesTracking::update() 
+{
+ #ifdef PORTED
+    if (leap.hasImages()) {
+        leapInit = true;
+        for (Image camera : leap.getImages()) {
+            if (camera.isLeft()) {
+                leftCam = camera;
+            }
+            else {
+                rightCam = camera;
+            }
+        }
+    }
+    // If first images not yet captured then skip
+    // Otherwise null pointer at leftCam, rightCam
+    if (!leapInit) return;
+
+    // Stretch images vertically*2 from 640*240->640*480
+    leftcvUnstretched.loadImage(leftCam);
+    rightcvUnstretched.loadImage(rightCam);
+    PImage leftCamStretched = leftcvUnstretched.getSnapshot();
+    PImage rightCamStretched = rightcvUnstretched.getSnapshot();
+    leftCamStretched.resize(640, 480);
+    rightCamStretched.resize(640, 480);
+    leftcv.loadImage(leftCamStretched);
+    rightcv.loadImage(rightCamStretched);
+
+    // Get OpenCV Matrices of Left and Right images
+    // Output: leftImage, rightImage Mat
+    srcLeft = leftcv.getSnapshot(); // src is PImage type
+    srcRight = rightcv.getSnapshot();
+    leftcv.gray();
+    rightcv.gray();
+    Mat leftImage = leftcv.getGray();
+    Mat rightImage = rightcv.getGray();
+
+    // Detect Blobs in Left and Right Images
+    // Output: blobsLeft, blobsRight List<KeyPoint>
+    MatOfKeyPoint blobMatLeft = new MatOfKeyPoint();
+    blobDetector.detect(leftImage, blobMatLeft);
+    List<KeyPoint> blobsLeft = blobMatLeft.toList();
+    MatOfKeyPoint blobMatRight = new MatOfKeyPoint();
+    blobDetector.detect(rightImage, blobMatRight);
+    List<KeyPoint> blobsRight = blobMatRight.toList();
+
+    // Rectify blobsLeft and blobsRight
+    ArrayList<PVector> leftSlopes = new ArrayList<PVector>();
+    ArrayList<PVector> rightSlopes = new ArrayList<PVector>();
+    com.leapmotion.leap.Image leftCamRectifier = leftCam.getRaw();
+    com.leapmotion.leap.Image rightCamRectifier = rightCam.getRaw();
+
+    if (blobsLeft.size() > 0) {
+        for (int i = 0; i < blobsLeft.size(); i++) {
+            KeyPoint blob = blobsLeft.get(i);
+            com.leapmotion.leap.Vector blobvector =
+                new com.leapmotion.leap.Vector((float)blob.pt.x,
+                                               (float)blob.pt.y / 2, 0);
+            com.leapmotion.leap.Vector blobslope =
+                leftCamRectifier.rectify(blobvector);
+            leftSlopes.add(new PVector(blobslope.get(0), blobslope.get(1), 0));
+        }
+    }
+
+    if (blobsRight.size() > 0) {
+        for (int i = 0; i < blobsRight.size(); i++) {
+            KeyPoint blob = blobsRight.get(i);
+            com.leapmotion.leap.Vector blobvector =
+                new com.leapmotion.leap.Vector((float)blob.pt.x,
+                                               (float)blob.pt.y / 2, 0);
+            com.leapmotion.leap.Vector blobslope =
+                rightCamRectifier.rectify(blobvector);
+            rightSlopes.add(new PVector(blobslope.get(0), blobslope.get(1), 0));
+        }
+    }
+
+    // Make a epipolar constraint filtered match list
+    ArrayList<PVector> leftSlopesEpifilt = new ArrayList<PVector>();
+    ArrayList<PVector> rightSlopesEpifilt = new ArrayList<PVector>();
+    for (PVector leftSlope : leftSlopes) {
+        for (PVector rightSlope : rightSlopes) {
+            if (((leftSlope.x - rightSlope.x) < 0) &&
+                ((rightSlope.x - leftSlope.x) < 0.2) &&
+                ((leftSlope.y - rightSlope.y) < 0.025) &&
+                ((rightSlope.y - leftSlope.y) < 0.025)) {
+                leftSlopesEpifilt.add(leftSlope);
+                rightSlopesEpifilt.add(rightSlope);
+            }
+        }
+    }
+
+    // Triangulate filtered list
+    ArrayList<PVector> triEpiFilt = new ArrayList<PVector>();
+    for (int i = 0; i < leftSlopesEpifilt.size(); i++) {
+        PVector leftPoint = leftSlopesEpifilt.get(i);
+        PVector rightPoint = rightSlopesEpifilt.get(i);
+        float z = 40 / (rightPoint.x - leftPoint.x);
+        float y = z * (rightPoint.y + leftPoint.y) / 2;
+        float x = 20 - z * (rightPoint.x + leftPoint.x) / 2;
+        if ((z > 200) && (z < 700) && (x > -500) && (x < 500) && (y > -300) &&
+            (y < 300)) {
+            triEpiFilt.add(new PVector(x, y, z));
+        }
+    }
+
+    // Further filtering if excess markers detected
+    if (triEpiFilt.size() == 0) {
+        // No markers detected: don't update either
+    }
+    else if (triEpiFilt.size() == 1) {
+        // One marker detected: don't update either (for now)
+    }
+    else if (triEpiFilt.size() == 2) {
+        // Two markers detected: left marker has smaller x
+        PVector temp0 = triEpiFilt.get(0);
+        PVector temp1 = triEpiFilt.get(1);
+        if (temp0.x < temp1.x) {
+            leftMarkerPos = temp0;
+            rightMarkerPos = temp1;
+        }
+        else {
+            leftMarkerPos = temp1;
+            rightMarkerPos = temp0;
+        }
+    }
+    else {
+        // More than two markers detected
+        // Find the two separated by real world marker distance:
+        // 115 to 145
+        for (PVector temp0 : triEpiFilt) {
+            for (PVector temp1 : triEpiFilt) {
+                if ((temp0.dist(temp1) > 115) && (temp0.dist(temp1) < 145)) {
+                    if (temp0.x < temp1.x) {
+                        leftMarkerPos = temp0;
+                        rightMarkerPos = temp1;
+                    }
+                    else {
+                        leftMarkerPos = temp1;
+                        rightMarkerPos = temp0;
+                    }
+                }
+            }
+        }
+    }
+
+    System.out.println("distance: " + rightMarkerPos.dist(leftMarkerPos));
+
+    // Smoothing via moving average
+    leftMarkerPosQueue.add(leftMarkerPos);
+    leftMarkerPosQueue.removeFirst();
+    rightMarkerPosQueue.add(rightMarkerPos);
+    rightMarkerPosQueue.removeFirst();
+
+    leftMarkerPosAvg = new PVector(0, 0, 0);
+    rightMarkerPosAvg = new PVector(0, 0, 0);
+    for (PVector temp : leftMarkerPosQueue) {
+        leftMarkerPosAvg.add(temp);
+    }
+    for (PVector temp : rightMarkerPosQueue) {
+        rightMarkerPosAvg.add(temp);
+    }
+    leftMarkerPosAvg.div(leftMarkerPosQueue.size());
+    rightMarkerPosAvg.div(rightMarkerPosQueue.size());
+    #endif
+}
