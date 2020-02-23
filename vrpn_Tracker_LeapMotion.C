@@ -262,6 +262,7 @@ void vrpn_Tracker_LeapMotion::Listener::onExit(
 void vrpn_Tracker_LeapMotion::Listener::onFrame(
     const Leap::Controller& controller)
 {
+    const q_vec_type Y = {0, 1, 0};
     // Get the most recent frame and report some basic information
     const Leap::Frame frame = controller.frame();
     std::cout << "Leap::Frame id: " << frame.id()
@@ -277,8 +278,7 @@ void vrpn_Tracker_LeapMotion::Listener::onFrame(
         // Get the first hand
         const Leap::Hand hand = *hl;
         std::string handType = hand.isLeft() ? "Left hand" : "Right hand";
-        vrpn_Tracker_LeapMotion::Hand& vprnHand =
-            hand.isLeft() ? vrpnTracker->leftHand : vrpnTracker->rightHand;
+        vrpn_Tracker_LeapMotion::Hand& vrpnHand = hand.isLeft() ? vrpnTracker->leftHand : vrpnTracker->rightHand;
 
         if (vrpnTracker->debugOutput)
             std::cout << std::string(2, ' ') << handType
@@ -299,6 +299,13 @@ void vrpn_Tracker_LeapMotion::Listener::onFrame(
                       << "yaw: " << direction.yaw() * Leap::RAD_TO_DEG
                       << " degrees" << std::endl;
 
+        // convert to VRPN CS
+        q_vec_set(vrpnHand.palm.location, hand.palmPosition()[0], hand.palmPosition()[1],
+                  hand.palmPosition()[2]);
+        // \todo check Leap vs VRPN convention for ypr (xyz vs yxz, etc.)
+        q_from_euler(vrpnHand.palm.quat, direction.yaw(), direction.pitch(),
+                     direction.roll());
+
         // Get the Arm bone
         Leap::Arm arm = hand.arm();
         if (vrpnTracker->debugOutput)
@@ -307,6 +314,16 @@ void vrpn_Tracker_LeapMotion::Listener::onFrame(
                       << " wrist position: " << arm.wristPosition()
                       << " elbow position: " << arm.elbowPosition()
                       << std::endl;
+
+        // convert to VRPN CS
+        q_vec_set(vrpnHand.elbow.location, arm.elbowPosition()[0],
+                  arm.elbowPosition()[1], arm.elbowPosition()[2]);        
+        q_vec_set(vrpnHand.wrist.location, arm.wristPosition()[0],
+                  arm.wristPosition()[1], arm.wristPosition()[2]);
+        q_vec_type dir;
+        q_vec_subtract(dir, vrpnHand.wrist.location, vrpnHand.elbow.location);
+        q_from_two_vecs(vrpnHand.elbow.quat, dir, Y);
+
 
         // Get fingers
         const Leap::FingerList fingers = hand.fingers();
@@ -330,14 +347,14 @@ void vrpn_Tracker_LeapMotion::Listener::onFrame(
                               << ", direction: " << bone.direction()
                               << std::endl;
 
-                // convert to coordinate system
+                // convert to VRPN CS
                 vrpn_CoordinateSystem& fingerJoint =
-                    vprnHand.fingerJoint(finger.type(), boneType);
+                    vrpnHand.fingerJoint(finger.type(), boneType);
 
                 q_vec_set(fingerJoint.location, bone.prevJoint()[0],
                           bone.prevJoint()[1], bone.prevJoint()[2]);
                 q_vec_type dir;
-                const q_vec_type Y = {0, 1, 0};
+                
                 q_vec_set(dir, bone.direction()[0], bone.direction()[1],
                           bone.direction()[2]);
                 q_from_two_vecs(fingerJoint.quat, dir, Y);

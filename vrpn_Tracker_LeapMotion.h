@@ -48,6 +48,9 @@ private:
     q_vec_type v;
 };
 
+/*
+@author Zachary Wartell
+*/
 class VRPN_API vrpn_CoordinateSystem {
 public:
     vrpn_CoordinateSystem()
@@ -87,15 +90,15 @@ public:
     enum struct Finger { Thumb, Index, Middle, Ring, Pinky };
     enum struct Bone { Metacarpal, Proximal, Middle, Distal };
 #endif
-
-    class Hand {
+    
+    class VRPN_API Hand {
     public:
         Hand();
 
         const static unsigned FINGER_SENSORS =
             (int(Leap::Finger::TYPE_PINKY) + 1) *
             (int(Leap::Bone::TYPE_DISTAL) + 1);
-        const static unsigned HAND_SENSORS = FINGER_SENSORS + 3;
+        const static unsigned HAND_SENSORS = FINGER_SENSORS + 5;
 
         vrpn_CoordinateSystem elbow;
         vrpn_CoordinateSystem wrist;
@@ -132,7 +135,7 @@ public:
         inline vrpn_CoordinateSystem &fingerJoint(Leap::Finger::Type f,
                                                   Leap::Bone::Type b)
         {
-            return *(&thumbMetacarpal + (int)f * 5 + (int)b);
+            return *(&thumbMetacarpal + (int)f * 4 + (int)b);
         }
     };
     Hand leftHand;
@@ -161,7 +164,7 @@ protected:
 
     vrpn_RedundantTransmission *d_redundancy;
 
-private:
+protected:
     int read_config_file(FILE *config_file, const char *tracker_name);
 
     class VRPN_API Listener : public Leap::Listener {
