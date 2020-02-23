@@ -25,6 +25,22 @@ class VRPN_API vrpn_RedundantTransmission;
 #ifdef USE_GLASSES_TRACKING
 #include "opencv2/core.hpp"
 #include "opencv2/features2d.hpp"
+
+#if 0
+namespace vrpnExt {
+    namespace Leap {
+        /*
+        @author Zachary Wartell
+        @brief wrapper class for Leap::Image with extra functionality
+        */
+        class Image : public Leap::Image 
+        {
+        public:
+            operator[](int i) { }
+        };
+    } // namespace Leap
+} // namespace vrpnExt
+#endif
 #endif
 
 namespace vrpnExt {
@@ -36,6 +52,8 @@ namespace vrpnExt {
     ZJW: [work-in-progress] I'll add to wrappers as I need them...
     */
     class q_vec {
+        typedef double Scalar;
+
     public:
         // for tag dispatch constructor
         struct ZERO_VECTOR {
@@ -44,7 +62,7 @@ namespace vrpnExt {
         // tag dispatch constructor
         inline q_vec(ZERO_VECTOR tag) { v[0] = v[1] = v[2] = 0.0; }
         inline q_vec(q_vec_type v0) { q_vec_copy(v, v0); }
-        inline q_vec(double x, double y, double z)
+        inline q_vec(Scalar x, Scalar y, Scalar z)
         {
             v[0] = x;
             v[1] = y;
@@ -52,8 +70,36 @@ namespace vrpnExt {
         }
 
         // typecast operators (cast to C style q_vec_type)
-        inline operator double *() { return &v[0]; }
-        inline operator const double *() { return &v[0]; }
+        inline operator Scalar *() { return &v[0]; }
+        inline operator const Scalar *() { return &v[0]; }
+
+        inline Scalar x() const { return v[0]; }
+        inline Scalar y() const { return v[1]; }
+        inline Scalar z() const { return v[2]; }
+
+        q_vec &operator +=(const q_vec av)            
+        {
+            v[0] += av.v[0];
+            v[1] += av.v[1];            
+            v[2] += av.v[2];
+            return *this;
+        }
+
+        q_vec& operator *= (Scalar s)
+        {
+            v[0] *= s;
+            v[1] *= s;
+            v[2] *= s;            
+            return *this;
+        }
+
+        q_vec &operator=(const Leap::Vector &lv)
+        {
+            v[0] = lv.x;
+            v[1] = lv.y;
+            v[2] = lv.z;
+            return *this;
+        }
 
         friend inline q_vec operator+(const q_vec &v1, const q_vec &v2)
         {
@@ -94,7 +140,7 @@ using namespace vrpnExt;
 
 
 */
-class VRPN_API vrpn_Tracker_LeapMotion : public vrpn_Tracker {    
+class VRPN_API vrpn_Tracker_LeapMotion : public vrpn_Tracker {
 public:
     vrpn_Tracker_LeapMotion(const char *name, vrpn_Connection *c,
                             vrpn_int32 sensors = 1, vrpn_float64 Hz = 1.0);
@@ -114,7 +160,6 @@ public:
 
     class VRPN_API Hand {
     public:
-        
         Hand();
 
         const static unsigned FINGER_SENSORS =
@@ -213,13 +258,14 @@ public:
     /*
     @author Zachary Wartell
 
-    C++ coding and porting by Zachary Wartell. Algorithm by Rajarshi Roy originally in OpenCV and Processing
+    C++ coding and porting by Zachary Wartell. Algorithm by Rajarshi Roy
+    originally in OpenCV and Processing
     (https://github.com/rajarshiroy/CS231A_PROJECT)
     */
     class VRPN_API GlassesTracking {
     public:
         GlassesTracking();
-        void update();
+        void update(const Leap::Frame &frame);
 
     private:
         std::list<q_vec> leftMarkerQueue;
@@ -227,13 +273,14 @@ public:
 
         Leap::Image leftCam;
         Leap::Image rightCam;
-        // boolean leapInit = false;
+        bool leapInit = false;
         // OpenCV leftcvUnstretched, rightcvUnstretched, leftcv, rightcv;
         // PImage srcLeft, srcRight;
 
 #ifdef USE_GLASSES_TRACKING
         // Blob detector
-        cv::Ptr<cv::FeatureDetector> blobDetector;
+        // cv::Ptr<cv::FeatureDetector>
+        cv::SimpleBlobDetector blobDetector;
 
         // Rectified image plane marker position
         q_vec leftCamLeftMarker;
@@ -242,6 +289,7 @@ public:
         q_vec rightCamRightMarker;
         // Triangulated 3D marker position
         q_vec leftMarkerPos;
+        q_vec rightMarkerPos;
 
         // Moving average queues for smoothing
         std::list<q_vec> leftMarkerPosQueue;
@@ -249,7 +297,10 @@ public:
         q_vec leftMarkerPosAvg;
         q_vec rightMarkerPosAvg;
 #endif
-        bool leapInit;
+        cv::Mat leftUnstretched;
+        cv::Mat rightUnstretched;
+        cv::Mat left;
+        cv::Mat right;
 #if 0
         leftcvUnstretched = new OpenCV(this, 640, 240);
         rightcvUnstretched = new OpenCV(this, 640, 240);

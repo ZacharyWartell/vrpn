@@ -8,6 +8,7 @@ Stage I - copy code from vrpn_Tracker_NULL
 */
 
 /* BEGIN COPY FROM vrpn_Tracker.C */
+#include <cassert>
 #include <ctype.h>  // for isspace
 #include <stdio.h>  // for fprintf, stderr, NULL, etc
 #include <string.h> // for memcpy, strlen, strncmp, etc
@@ -281,7 +282,8 @@ void vrpn_Tracker_LeapMotion::Listener::onFrame(
         // Get the first hand
         const Leap::Hand hand = *hl;
         std::string handType = hand.isLeft() ? "Left hand" : "Right hand";
-        vrpn_Tracker_LeapMotion::Hand& vrpnHand = hand.isLeft() ? vrpnTracker->leftHand : vrpnTracker->rightHand;
+        vrpn_Tracker_LeapMotion::Hand& vrpnHand =
+            hand.isLeft() ? vrpnTracker->leftHand : vrpnTracker->rightHand;
 
         if (vrpnTracker->debugOutput)
             std::cout << std::string(2, ' ') << handType
@@ -303,8 +305,8 @@ void vrpn_Tracker_LeapMotion::Listener::onFrame(
                       << " degrees" << std::endl;
 
         // convert to VRPN CS
-        q_vec_set(vrpnHand.palm.location, hand.palmPosition()[0], hand.palmPosition()[1],
-                  hand.palmPosition()[2]);
+        q_vec_set(vrpnHand.palm.location, hand.palmPosition()[0],
+                  hand.palmPosition()[1], hand.palmPosition()[2]);
         // \todo [BUG?] check Leap vs VRPN convention for ypr (xyz vs yxz, etc.)
         q_from_euler(vrpnHand.palm.quat, direction.yaw(), direction.pitch(),
                      direction.roll());
@@ -320,13 +322,12 @@ void vrpn_Tracker_LeapMotion::Listener::onFrame(
 
         // convert to VRPN CS
         q_vec_set(vrpnHand.elbow.location, arm.elbowPosition()[0],
-                  arm.elbowPosition()[1], arm.elbowPosition()[2]);        
+                  arm.elbowPosition()[1], arm.elbowPosition()[2]);
         q_vec_set(vrpnHand.wrist.location, arm.wristPosition()[0],
                   arm.wristPosition()[1], arm.wristPosition()[2]);
         q_vec_type dir;
         q_vec_subtract(dir, vrpnHand.wrist.location, vrpnHand.elbow.location);
         q_from_two_vecs(vrpnHand.elbow.quat, dir, Y);
-
 
         // Get fingers
         const Leap::FingerList fingers = hand.fingers();
@@ -357,7 +358,7 @@ void vrpn_Tracker_LeapMotion::Listener::onFrame(
                 q_vec_set(fingerJoint.location, bone.prevJoint()[0],
                           bone.prevJoint()[1], bone.prevJoint()[2]);
                 q_vec_type dir;
-                
+
                 q_vec_set(dir, bone.direction()[0], bone.direction()[1],
                           bone.direction()[2]);
                 q_from_two_vecs(fingerJoint.quat, dir, Y);
@@ -377,7 +378,8 @@ void vrpn_Tracker_LeapMotion::Listener::onFrame(
                   << ", direction: " << tool.direction() << std::endl;
     }
 
-    // \todo ZJW - probably leave this out or VRPN or convert to VRPN Button "event"?
+    // \todo ZJW - probably leave this out or VRPN or convert to VRPN Button
+    // "event"?
 
     // Get gestures
     const Leap::GestureList gestures = frame.gestures();
@@ -490,45 +492,83 @@ void vrpn_Tracker_LeapMotion::Listener::onServiceDisconnect(
 END COPY AND NODIFIY FROM Leap SDK Sample.cpp
 */
 
-vrpn_Tracker_LeapMotion::GlassesTracking::GlassesTracking() : 
-    leftCamLeftMarker(q_vec::ZERO_VECTOR()), 
-    leftCamRightMarker(q_vec::ZERO_VECTOR()), 
-    rightCamLeftMarker(q_vec::ZERO_VECTOR()), 
-    rightCamRightMarker(q_vec::ZERO_VECTOR()),
-    leftMarkerPos(q_vec::ZERO_VECTOR()),
-    leftMarkerPosAvg(q_vec::ZERO_VECTOR()),
-    rightMarkerPosAvg(q_vec::ZERO_VECTOR())    
+vrpn_Tracker_LeapMotion::GlassesTracking::GlassesTracking()
+    : leftCamLeftMarker(q_vec::ZERO_VECTOR())
+    , leftCamRightMarker(q_vec::ZERO_VECTOR())
+    , rightCamLeftMarker(q_vec::ZERO_VECTOR())
+    , rightCamRightMarker(q_vec::ZERO_VECTOR())
+    , leftMarkerPos(q_vec::ZERO_VECTOR())
+    , rightMarkerPos(q_vec::ZERO_VECTOR())
+    , leftMarkerPosAvg(q_vec::ZERO_VECTOR())
+    , rightMarkerPosAvg(q_vec::ZERO_VECTOR())
+    , leftUnstretched(cv::Size(640, 240), CV_8UC1)
+    , rightUnstretched(cv::Size(640, 240), CV_8UC1)
+    , left(cv::Size(640, 480), CV_8UC1)
+    , right(cv::Size(640, 480), CV_8UC1)
 {
 }
 
+#define PORTED
 
-void vrpn_Tracker_LeapMotion::GlassesTracking::update() 
+void vrpn_Tracker_LeapMotion::GlassesTracking::update(const Leap::Frame& frame)
 {
- #ifdef PORTED
-    if (leap.hasImages()) {
+#ifdef PORTED
+    if (!frame.images().isEmpty()) {
         leapInit = true;
-        for (Image camera : leap.getImages()) {
-            if (camera.isLeft()) {
-                leftCam = camera;
+        for (Leap::Image image : frame.images()) {
+            if (image.id() == 0) {
+                leftCam = image;
             }
             else {
-                rightCam = camera;
+                rightCam = image;
             }
         }
     }
+#endif
+
     // If first images not yet captured then skip
     // Otherwise null pointer at leftCam, rightCam
     if (!leapInit) return;
 
-    // Stretch images vertically*2 from 640*240->640*480
-    leftcvUnstretched.loadImage(leftCam);
-    rightcvUnstretched.loadImage(rightCam);
-    PImage leftCamStretched = leftcvUnstretched.getSnapshot();
-    PImage rightCamStretched = rightcvUnstretched.getSnapshot();
+        // Stretch images vertically*2 from 640*240->640*480
+
+#if 0
+    // error: ZJW mis-understanding OpenCV constructor
+    leftUnstretched.setTo(cv::Mat(leftUnstretched.size().height,leftUnstretched.size().width,leftUnstretched.type(),static_cast<const
+        void*>(leftCam.data()));
+    rightUnstretched.setTo(cv::Mat(rightUnstretched.size().height,rightUnstretched.size().width,rightUnstretched.type(),static_cast<const
+        void*>((rightCam.data()));
+#endif
+    assert(leftCam.bytesPerPixel() == 1);
+    /* \todo [PERFORMANCE] figure out how to memcpy using cv:Mat (must verify
+     * that it legitimate in this case -- array layout, endianness etc.)
+     */
+    for (int i = 0; i < leftUnstretched.size().height; i += 2)
+        for (int j = 0; j < leftUnstretched.size().width; j++) {
+#if 0
+            leftUnstretched.at<uchar>(i, j) =
+                (leftCam.width() * j + i) * leftCam.bytesPerPixel();
+            rightUnstretched.at<uchar>(i, j) =
+                (rightCam.width() * j + i) * rightCam.bytesPerPixel();
+#else
+            left.at<uchar>(i, j) = left.at<uchar>(i + 1, j) =
+                (leftCam.width() * (i / 2) + j) * leftCam.bytesPerPixel();
+            right.at<uchar>(i, j) = right.at<uchar>(i + 1, j) =
+                (rightCam.width() * (i / 2) + j) * rightCam.bytesPerPixel();
+#endif
+        }
+#if 0
+    // ZJW: ported
+    PImage leftCamStretched = leftUnstretched.getSnapshot();
+    PImage rightCamStretched = rightUnstretched.getSnapshot();
     leftCamStretched.resize(640, 480);
     rightCamStretched.resize(640, 480);
     leftcv.loadImage(leftCamStretched);
     rightcv.loadImage(rightCamStretched);
+#endif
+
+#if 0 
+    // ZJW: skipped: with a single channel image this step seems uncessary in C++ OpenCV
 
     // Get OpenCV Matrices of Left and Right images
     // Output: leftImage, rightImage Mat
@@ -538,7 +578,15 @@ void vrpn_Tracker_LeapMotion::GlassesTracking::update()
     rightcv.gray();
     Mat leftImage = leftcv.getGray();
     Mat rightImage = rightcv.getGray();
+#endif
 
+#ifdef PORTED
+    // Detect Blobs in Left and Right Images
+    std::vector<cv::KeyPoint> blobsLeft;
+    blobDetector.detect(left, blobsLeft);
+    std::vector<cv::KeyPoint> blobsRight;
+    blobDetector.detect(right, blobsRight);
+#else
     // Detect Blobs in Left and Right Images
     // Output: blobsLeft, blobsRight List<KeyPoint>
     MatOfKeyPoint blobMatLeft = new MatOfKeyPoint();
@@ -547,13 +595,32 @@ void vrpn_Tracker_LeapMotion::GlassesTracking::update()
     MatOfKeyPoint blobMatRight = new MatOfKeyPoint();
     blobDetector.detect(rightImage, blobMatRight);
     List<KeyPoint> blobsRight = blobMatRight.toList();
+#endif
 
+#ifdef PORTED
+    // Rectify blobsLeft and blobsRight
+    std::vector<Leap::Vector> leftSlopes;
+    std::vector<Leap::Vector> rightSlopes;
+
+    Leap::Image leftCamRectifier(leftCam);
+    Leap::Image rightCamRectifier(rightCam);
+    // com.leapmotion.leap.Image leftCamRectifier = leftCam.getRaw();
+    // com.leapmotion.leap.Image rightCamRectifier = rightCam.getRaw();
+#else
     // Rectify blobsLeft and blobsRight
     ArrayList<PVector> leftSlopes = new ArrayList<PVector>();
     ArrayList<PVector> rightSlopes = new ArrayList<PVector>();
     com.leapmotion.leap.Image leftCamRectifier = leftCam.getRaw();
     com.leapmotion.leap.Image rightCamRectifier = rightCam.getRaw();
-
+#endif
+#ifdef PORTED
+    for (int i = 0; i < blobsLeft.size(); i++)
+        leftSlopes.push_back(leftCamRectifier.rectify(Leap::Vector(
+            (float)blobsLeft[i].pt.x, (float)blobsLeft[i].pt.y / 2, 0)));
+    for (int i = 0; i < blobsRight.size(); i++)
+        rightSlopes.push_back(rightCamRectifier.rectify(Leap::Vector(
+            (float)blobsRight[i].pt.x, (float)blobsRight[i].pt.y / 2, 0)));
+#else
     if (blobsLeft.size() > 0) {
         for (int i = 0; i < blobsLeft.size(); i++) {
             KeyPoint blob = blobsLeft.get(i);
@@ -577,7 +644,25 @@ void vrpn_Tracker_LeapMotion::GlassesTracking::update()
             rightSlopes.add(new PVector(blobslope.get(0), blobslope.get(1), 0));
         }
     }
+#endif
 
+#ifdef PORTED
+    // Make a epipolar constraint filtered match list
+    std::vector<Leap::Vector> leftSlopesEpifilt;
+    std::vector<Leap::Vector> rightSlopesEpifilt;
+
+    for (Leap::Vector leftSlope : leftSlopes) {
+        for (Leap::Vector rightSlope : rightSlopes) {
+            if (((leftSlope.x - rightSlope.x) < 0) &&
+                ((rightSlope.x - leftSlope.x) < 0.2) &&
+                ((leftSlope.y - rightSlope.y) < 0.025) &&
+                ((rightSlope.y - leftSlope.y) < 0.025)) {
+                leftSlopesEpifilt.push_back(leftSlope);
+                rightSlopesEpifilt.push_back(rightSlope);
+            }
+        }
+    }
+#else
     // Make a epipolar constraint filtered match list
     ArrayList<PVector> leftSlopesEpifilt = new ArrayList<PVector>();
     ArrayList<PVector> rightSlopesEpifilt = new ArrayList<PVector>();
@@ -592,7 +677,23 @@ void vrpn_Tracker_LeapMotion::GlassesTracking::update()
             }
         }
     }
+#endif
+#ifdef PORTED
+    // Triangulate filtered list
+    std::vector<Leap::Vector> triEpiFilt;    
+    for (int i = 0; i < leftSlopesEpifilt.size(); i++) {
+        Leap::Vector leftPoint  = leftSlopesEpifilt [i];
+        Leap::Vector rightPoint = rightSlopesEpifilt[i];        
+        float z = 40 / (rightPoint.x - leftPoint.x);
+        float y = z * (rightPoint.y + leftPoint.y) / 2;
+        float x = 20 - z * (rightPoint.x + leftPoint.x) / 2;
+        if ((z > 200) && (z < 700) && (x > -500) && (x < 500) && (y > -300) &&
+            (y < 300)) {
+            triEpiFilt.push_back(Leap::Vector(x, y, z));
+        }
+    }
 
+#else
     // Triangulate filtered list
     ArrayList<PVector> triEpiFilt = new ArrayList<PVector>();
     for (int i = 0; i < leftSlopesEpifilt.size(); i++) {
@@ -606,7 +707,50 @@ void vrpn_Tracker_LeapMotion::GlassesTracking::update()
             triEpiFilt.add(new PVector(x, y, z));
         }
     }
+#endif
+#ifdef PORTED
+    // Further filtering if excess markers detected
+    if (triEpiFilt.size() == 0) {
+        // No markers detected: don't update either
+    }
+    else if (triEpiFilt.size() == 1) {
+        // One marker detected: don't update either (for now)
+    }
+    else if (triEpiFilt.size() == 2) {
+        // Two markers detected: left marker has smaller x
+        Leap::Vector temp0 = triEpiFilt.at(0);
+        Leap::Vector temp1 = triEpiFilt.at(1);
+        if (temp0.x < temp1.x) {
+            leftMarkerPos = temp0;
+            rightMarkerPos = temp1;
+        }
+        else {
+            leftMarkerPos = temp1;
+            rightMarkerPos = temp0;
+        }
+    }
+    else {
+        // More than two markers detected
+        // Find the two separated by real world marker distance:
+        // 115 to 145
+        for (Leap::Vector temp0 : triEpiFilt) {
+            for (Leap::Vector temp1 : triEpiFilt) {
+                if ((temp0.distanceTo(temp1) > 115) &&    // \todo [PERFORMANCE] replace with distSquared test
+                    (temp0.distanceTo(temp1) < 145)) {
+                    if (temp0.x < temp1.x) {
+                        leftMarkerPos = temp0;
+                        rightMarkerPos = temp1;
+                    }
+                    else {
+                        leftMarkerPos = temp1;
+                        rightMarkerPos = temp0;
+                    }
+                }
+            }
+        }
+    }
 
+#else
     // Further filtering if excess markers detected
     if (triEpiFilt.size() == 0) {
         // No markers detected: don't update either
@@ -648,7 +792,23 @@ void vrpn_Tracker_LeapMotion::GlassesTracking::update()
     }
 
     System.out.println("distance: " + rightMarkerPos.dist(leftMarkerPos));
-
+#endif
+#ifdef PORTED
+    // Smoothing via moving average
+    leftMarkerPosQueue.push_back(leftMarkerPos);
+    leftMarkerPosQueue.pop_front();
+    rightMarkerPosQueue.push_back(rightMarkerPos);
+    rightMarkerPosQueue.pop_front();
+    
+    for (q_vec temp : leftMarkerPosQueue) {
+        leftMarkerPosAvg += temp;
+    }
+    for (q_vec temp : rightMarkerPosQueue) {
+        rightMarkerPosAvg += temp;
+    }
+    leftMarkerPosAvg *= 1.0/leftMarkerPosQueue.size();
+    rightMarkerPosAvg *= 1.0/rightMarkerPosQueue.size();
+#else
     // Smoothing via moving average
     leftMarkerPosQueue.add(leftMarkerPos);
     leftMarkerPosQueue.removeFirst();
@@ -665,5 +825,5 @@ void vrpn_Tracker_LeapMotion::GlassesTracking::update()
     }
     leftMarkerPosAvg.div(leftMarkerPosQueue.size());
     rightMarkerPosAvg.div(rightMarkerPosQueue.size());
-    #endif
+#endif
 }
