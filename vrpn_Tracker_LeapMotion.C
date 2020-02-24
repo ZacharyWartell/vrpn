@@ -5,6 +5,11 @@
 Stage I - copy code from vrpn_Tracker_NULL
 
 @copyright Copyright Zachary Wartell 2020.
+
+REFERENCES
+
+- [R1] Rajarshi RoyStanford University (rroy@stanford.edu). Eyeglass positional
+tracking using leap motion controller for parallax projection.
 */
 
 /* BEGIN COPY FROM vrpn_Tracker.C */
@@ -35,19 +40,12 @@ Stage I - copy code from vrpn_Tracker_NULL
 #include "vrpn_RedundantTransmission.h" // for vrpn_RedundantTransmission
 #include "vrpn_Tracker_LeapMotion.h"
 
+#ifdef USE_GLASSES_TRACKING
+#include <opencv2/highgui.hpp>
+#endif
 using namespace vrpnExt;
 
 /* END COPY FROM vrpn_Tracker.C */
-
-/**
-
-[Stage I] Temporary hack
-*/
-#if 0
-#define main HIDE_MAIN
-#include "submodules\LeapSDK\samples\Sample.cpp"
-#undef main
-#endif
 
 static const std::string fingerNames[] = {"Thumb", "Index", "Middle", "Ring",
                                           "Pinky"};
@@ -101,6 +99,18 @@ vrpn_Tracker_LeapMotion::vrpn_Tracker_LeapMotion(const char* name,
 
     // Have the sample listener receive events from the controller
     listener.vrpnTracker = this;
+#ifdef USE_GLASSES_TRACKING
+#if 1
+    cv::namedWindow("leftWindow", cv::WINDOW_AUTOSIZE);
+    cv::namedWindow("rightWindow", cv::WINDOW_AUTOSIZE);
+    cv::moveWindow("leftWindow", 0, 0);
+    cv::moveWindow("rightWindow", 640, 0);
+    cv::setMouseCallback("leftWindow", NULL);
+    cv::setMouseCallback("rightWindow", NULL);
+#endif
+
+    controller.setPolicyFlags(Leap::Controller::POLICY_IMAGES);
+#endif
     controller.addListener(listener);
 
 #if 0
@@ -125,8 +135,12 @@ void vrpn_Tracker_LeapMotion::mainloop()
     // Call the generic server mainloop routine, since this is a server
     server_mainloop();
 
-    // See if its time to generate a new report
-    vrpn_gettimeofday(&current_time, NULL);
+    cv::imshow("leftWindow", listener.glassesTracking.left());
+    cv::imshow("rightWindow", listener.glassesTracking.right());
+    cv::waitKey(1);
+
+        // See if its time to generate a new report
+        vrpn_gettimeofday(&current_time, NULL);
     if (vrpn_TimevalDuration(current_time, timestamp) >=
         1000000.0 / update_rate) {
 
@@ -261,6 +275,17 @@ void vrpn_Tracker_LeapMotion::Listener::onExit(
     const Leap::Controller& controller)
 {
     std::cout << "Exited" << std::endl;
+}
+
+void vrpn_Tracker_LeapMotion::Listener::onImages(
+    const Leap::Controller& controller)
+{
+#ifdef USE_GLASSES_TRACKING
+    std::cout << __FUNCTION__ << std::endl;
+    glassesTracking.update(controller.frame());
+    std::cout << "Glasses Markers: " << glassesTracking.leftMarker() << " "
+              << glassesTracking.rightMarker() << std::endl;
+#endif
 }
 
 void vrpn_Tracker_LeapMotion::Listener::onFrame(
@@ -503,15 +528,50 @@ vrpn_Tracker_LeapMotion::GlassesTracking::GlassesTracking()
     , rightMarkerPosAvg(q_vec::ZERO_VECTOR())
     , leftUnstretched(cv::Size(640, 240), CV_8UC1)
     , rightUnstretched(cv::Size(640, 240), CV_8UC1)
-    , left(cv::Size(640, 480), CV_8UC1)
-    , right(cv::Size(640, 480), CV_8UC1)
+    , left_(cv::Size(640, 480), CV_8UC1)
+    , right_(cv::Size(640, 480), CV_8UC1)
+    , leftCopy(cv::Size(640, 480), CV_8UC1)
+    , rightCopy(cv::Size(640, 480), CV_8UC1)
 {
+
+#if 0
+    cv::namedWindow("leftWindow", cv::WINDOW_AUTOSIZE );
+    cv::setMouseCallback("leftWindow", NULL);
+    cv::namedWindow("rightWindow", cv::WINDOW_AUTOSIZE );
+    cv::setMouseCallback("rightWindow", NULL);
+#endif
+
+    cv::SimpleBlobDetector::Params params;
+
+    // see [R1]
+    params.thresholdStep = 5;
+    params.minThreshold = 55;
+    params.maxThreshold = 255;
+    params.minRepeatability = 2;
+    params.minDistBetweenBlobs = 10;
+    params.filterByColor = true;
+    params.blobColor = 255;
+    params.filterByArea = true;
+    params.minArea = 5;
+    params.maxArea = 20;
+    params.filterByCircularity = false;
+    params.minCircularity = 8.0000001192092896e-01;
+    params.maxCircularity = 3.4028234663852886e+38;
+    params.filterByInertia = true;
+    params.minInertiaRatio = 1.0000000149011612e-01;
+    params.maxInertiaRatio = 3.4028234663852886e+38;
+    params.filterByConvexity = true;
+    params.minConvexity = 9.4999998807907104e-01;
+    params.maxConvexity = 3.4028234663852886e+38;
+
+    blobDetector = cv::SimpleBlobDetector::create(params);
 }
 
 #define PORTED
 
 void vrpn_Tracker_LeapMotion::GlassesTracking::update(const Leap::Frame& frame)
 {
+    std::cout << __FUNCTION__ << " " << __LINE__ << std::endl;
 #ifdef PORTED
     if (!frame.images().isEmpty()) {
         leapInit = true;
@@ -529,46 +589,53 @@ void vrpn_Tracker_LeapMotion::GlassesTracking::update(const Leap::Frame& frame)
     // If first images not yet captured then skip
     // Otherwise null pointer at leftCam, rightCam
     if (!leapInit) return;
+    std::cout << __FUNCTION__ << " " << __LINE__ << std::endl;
 
-        // Stretch images vertically*2 from 640*240->640*480
-
+#ifdef PORTED
+    // Stretch images vertically*2 from 640*240->640*480
 #if 0
-    // error: ZJW mis-understanding OpenCV constructor
+    // error: ZJW mis-understanding OpenCV constructor; right now the nested for loops below is the only solution I have
     leftUnstretched.setTo(cv::Mat(leftUnstretched.size().height,leftUnstretched.size().width,leftUnstretched.type(),static_cast<const
         void*>(leftCam.data()));
     rightUnstretched.setTo(cv::Mat(rightUnstretched.size().height,rightUnstretched.size().width,rightUnstretched.type(),static_cast<const
         void*>((rightCam.data()));
 #endif
     assert(leftCam.bytesPerPixel() == 1);
+    assert(leftCam.width() == rightCam.width() &&
+           leftCam.height() == rightCam.height() && rightCam.height() == 240);
+    assert(leftCam.width() == right_.cols);
     /* \todo [PERFORMANCE] figure out how to memcpy using cv:Mat (must verify
      * that it legitimate in this case -- array layout, endianness etc.)
      */
-    for (int i = 0; i < leftUnstretched.size().height; i += 2)
-        for (int j = 0; j < leftUnstretched.size().width; j++) {
+    for (int i = 0; i < left_.rows; i += 2)
+        for (int j = 0; j < left_.cols; j++) {
 #if 0
             leftUnstretched.at<uchar>(i, j) =
                 (leftCam.width() * j + i) * leftCam.bytesPerPixel();
             rightUnstretched.at<uchar>(i, j) =
                 (rightCam.width() * j + i) * rightCam.bytesPerPixel();
 #else
-            left.at<uchar>(i, j) = left.at<uchar>(i + 1, j) =
-                (leftCam.width() * (i / 2) + j) * leftCam.bytesPerPixel();
-            right.at<uchar>(i, j) = right.at<uchar>(i + 1, j) =
-                (rightCam.width() * (i / 2) + j) * rightCam.bytesPerPixel();
+            left_.at<uchar>(i, j) = left_.at<uchar>(i + 1, j) =
+                leftCam.data()[(leftCam.width() * (i / 2) + j) *
+                               leftCam.bytesPerPixel()];
+            right_.at<uchar>(i, j) = right_.at<uchar>(i + 1, j) =
+                rightCam.data()[(rightCam.width() * (i / 2) + j) *
+                                rightCam.bytesPerPixel()];
 #endif
-        }
-#if 0
-    // ZJW: ported
+        };
+    //left_.copyTo(leftCopy);
+    //right_.copyTo(rightCopy);
+
+#else
     PImage leftCamStretched = leftUnstretched.getSnapshot();
     PImage rightCamStretched = rightUnstretched.getSnapshot();
     leftCamStretched.resize(640, 480);
     rightCamStretched.resize(640, 480);
     leftcv.loadImage(leftCamStretched);
     rightcv.loadImage(rightCamStretched);
-#endif
 
-#if 0 
-    // ZJW: skipped: with a single channel image this step seems uncessary in C++ OpenCV
+    // ZJW: Porting Note: skipped this: with a single channel image this step
+    // seems uncessary in C++ OpenCV
 
     // Get OpenCV Matrices of Left and Right images
     // Output: leftImage, rightImage Mat
@@ -583,9 +650,11 @@ void vrpn_Tracker_LeapMotion::GlassesTracking::update(const Leap::Frame& frame)
 #ifdef PORTED
     // Detect Blobs in Left and Right Images
     std::vector<cv::KeyPoint> blobsLeft;
-    blobDetector.detect(left, blobsLeft);
+    blobDetector->detect(left_, blobsLeft);
     std::vector<cv::KeyPoint> blobsRight;
-    blobDetector.detect(right, blobsRight);
+    blobDetector->detect(right_, blobsRight);
+    std::cout << "blobsRight.size(): " << blobsRight.size() << std::endl;
+    std::cout << "blobsLeft.size(): " << blobsLeft.size() << std::endl;
 #else
     // Detect Blobs in Left and Right Images
     // Output: blobsLeft, blobsRight List<KeyPoint>
@@ -680,10 +749,10 @@ void vrpn_Tracker_LeapMotion::GlassesTracking::update(const Leap::Frame& frame)
 #endif
 #ifdef PORTED
     // Triangulate filtered list
-    std::vector<Leap::Vector> triEpiFilt;    
+    std::vector<Leap::Vector> triEpiFilt;
     for (int i = 0; i < leftSlopesEpifilt.size(); i++) {
-        Leap::Vector leftPoint  = leftSlopesEpifilt [i];
-        Leap::Vector rightPoint = rightSlopesEpifilt[i];        
+        Leap::Vector leftPoint = leftSlopesEpifilt[i];
+        Leap::Vector rightPoint = rightSlopesEpifilt[i];
         float z = 40 / (rightPoint.x - leftPoint.x);
         float y = z * (rightPoint.y + leftPoint.y) / 2;
         float x = 20 - z * (rightPoint.x + leftPoint.x) / 2;
@@ -735,7 +804,9 @@ void vrpn_Tracker_LeapMotion::GlassesTracking::update(const Leap::Frame& frame)
         // 115 to 145
         for (Leap::Vector temp0 : triEpiFilt) {
             for (Leap::Vector temp1 : triEpiFilt) {
-                if ((temp0.distanceTo(temp1) > 115) &&    // \todo [PERFORMANCE] replace with distSquared test
+                if ((temp0.distanceTo(temp1) >
+                     115) && // \todo [PERFORMANCE] replace with distSquared
+                             // test
                     (temp0.distanceTo(temp1) < 145)) {
                     if (temp0.x < temp1.x) {
                         leftMarkerPos = temp0;
@@ -799,15 +870,17 @@ void vrpn_Tracker_LeapMotion::GlassesTracking::update(const Leap::Frame& frame)
     leftMarkerPosQueue.pop_front();
     rightMarkerPosQueue.push_back(rightMarkerPos);
     rightMarkerPosQueue.pop_front();
-    
+
+    leftMarkerPosAvg = q_vec(q_vec::ZERO_VECTOR());
     for (q_vec temp : leftMarkerPosQueue) {
         leftMarkerPosAvg += temp;
     }
+    rightMarkerPosAvg = q_vec(q_vec::ZERO_VECTOR());
     for (q_vec temp : rightMarkerPosQueue) {
         rightMarkerPosAvg += temp;
     }
-    leftMarkerPosAvg *= 1.0/leftMarkerPosQueue.size();
-    rightMarkerPosAvg *= 1.0/rightMarkerPosQueue.size();
+    leftMarkerPosAvg *= 1.0 / leftMarkerPosQueue.size();
+    rightMarkerPosAvg *= 1.0 / rightMarkerPosQueue.size();
 #else
     // Smoothing via moving average
     leftMarkerPosQueue.add(leftMarkerPos);

@@ -51,10 +51,10 @@ namespace vrpnExt {
 
     ZJW: [work-in-progress] I'll add to wrappers as I need them...
     */
-    class q_vec {
+    class q_vec {        
+    public:
         typedef double Scalar;
 
-    public:
         // for tag dispatch constructor
         struct ZERO_VECTOR {
         };
@@ -77,19 +77,25 @@ namespace vrpnExt {
         inline Scalar y() const { return v[1]; }
         inline Scalar z() const { return v[2]; }
 
-        q_vec &operator +=(const q_vec av)            
+        q_vec &operator+=(const q_vec av)
         {
             v[0] += av.v[0];
-            v[1] += av.v[1];            
+            v[1] += av.v[1];
             v[2] += av.v[2];
             return *this;
         }
 
-        q_vec& operator *= (Scalar s)
+        q_vec &operator*=(Scalar s)
         {
             v[0] *= s;
             v[1] *= s;
-            v[2] *= s;            
+            v[2] *= s;
+            return *this;
+        }
+
+        q_vec &operator=(const q_vec &qv)
+        {
+            memcpy(&v, &qv.v, sizeof(q_vec));
             return *this;
         }
 
@@ -108,6 +114,17 @@ namespace vrpnExt {
             return q_vec(t);
         }
 
+        std::string toString() const
+        {
+            std::stringstream result;
+            result << "(" << x() << ", " << y() << ", " << z() << ")";
+            return result.str();
+        }
+  
+        friend std::ostream &operator<<(std::ostream &out, const q_vec &v)
+        {
+            return out << v.toString();
+        }
     private:
         q_vec_type v;
     };
@@ -234,27 +251,6 @@ protected:
 protected:
     int read_config_file(FILE *config_file, const char *tracker_name);
 
-    class VRPN_API Listener : public Leap::Listener {
-    public:
-        virtual void onInit(const Leap::Controller &);
-        virtual void onConnect(const Leap::Controller &);
-        virtual void onDisconnect(const Leap::Controller &);
-        virtual void onExit(const Leap::Controller &);
-        virtual void onFrame(const Leap::Controller &);
-        virtual void onFocusGained(const Leap::Controller &);
-        virtual void onFocusLost(const Leap::Controller &);
-        virtual void onDeviceChange(const Leap::Controller &);
-        virtual void onServiceConnect(const Leap::Controller &);
-        virtual void onServiceDisconnect(const Leap::Controller &);
-
-        vrpn_Tracker_LeapMotion *vrpnTracker;
-
-    private:
-    };
-    Listener listener;
-    Leap::Controller controller;
-
-public:
     /*
     @author Zachary Wartell
 
@@ -266,6 +262,12 @@ public:
     public:
         GlassesTracking();
         void update(const Leap::Frame &frame);
+
+        const q_vec &leftMarker() const { return leftMarkerPosAvg;  }
+        const q_vec &rightMarker() const { return rightMarkerPosAvg; }
+        const cv::Mat &left() const { return left_; }
+        const cv::Mat &right() const { return right_; }
+        
 
     private:
         std::list<q_vec> leftMarkerQueue;
@@ -280,7 +282,7 @@ public:
 #ifdef USE_GLASSES_TRACKING
         // Blob detector
         // cv::Ptr<cv::FeatureDetector>
-        cv::SimpleBlobDetector blobDetector;
+        cv::Ptr<cv::SimpleBlobDetector> blobDetector;
 
         // Rectified image plane marker position
         q_vec leftCamLeftMarker;
@@ -299,8 +301,10 @@ public:
 #endif
         cv::Mat leftUnstretched;
         cv::Mat rightUnstretched;
-        cv::Mat left;
-        cv::Mat right;
+        cv::Mat left_;
+        cv::Mat right_;
+        cv::Mat leftCopy;
+        cv::Mat rightCopy;
 #if 0
         leftcvUnstretched = new OpenCV(this, 640, 240);
         rightcvUnstretched = new OpenCV(this, 640, 240);
@@ -344,10 +348,32 @@ public:
         q_vec middle;
         q_vec leftMarker;
         q_vec rightMarker;
-
-        GlassesTracking glassesTracking;
     };
-};
 
+    class VRPN_API Listener : public Leap::Listener {
+    public:
+        virtual void onInit(const Leap::Controller &);
+        virtual void onConnect(const Leap::Controller &);
+        virtual void onDisconnect(const Leap::Controller &);
+        virtual void onExit(const Leap::Controller &);
+        virtual void onFrame(const Leap::Controller &);        
+        virtual void onImages(const Leap::Controller &) override;        
+        virtual void onFocusGained(const Leap::Controller &);
+        virtual void onFocusLost(const Leap::Controller &);
+        virtual void onDeviceChange(const Leap::Controller &);
+        virtual void onServiceConnect(const Leap::Controller &);
+        virtual void onServiceDisconnect(const Leap::Controller &);
+
+        vrpn_Tracker_LeapMotion *vrpnTracker;
+#ifdef USE_GLASSES_TRACKING
+        GlassesTracking glassesTracking;
+#endif
+    private:
+    };
+    Listener listener;
+    Leap::Controller controller;
+
+public:
+};
 // End of vrpn_LEAP_MOTION_TRACKER_H
 #endif
