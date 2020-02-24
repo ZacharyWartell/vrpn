@@ -425,9 +425,9 @@ endif()
 # LeapMotion
 # \todo General further beyond Windows
 ###
-# Setting up the local HIDAPI was handled above, in the submodules directory
+# Setting up the local LeapMotion was handled above, in the submodules directory
 if(NOT VRPN_USE_LOCAL_LEAPMOTION)
-	find_package(LeapMotion ${QUIET_IF_SUBPROJECT})
+	#find_package(LeapMotion ${QUIET_IF_SUBPROJECT})
 endif()
 
 option_requires(VRPN_USE_LEAPMOTION
@@ -435,9 +435,28 @@ option_requires(VRPN_USE_LEAPMOTION
 	${DEFAULT_OFF_IF_SUBPROJECT}
 	LEAPMOTION_FOUND)
 
-if(VRPN_USE_LEAPMOTION)
-	include_directories(AFTER ${LEAPMOTION_INCLUDE_DIRS})
+if(VRPN_USE_LEAPMOTION)	
+    include_directories(${LEAPMOTION_INCLUDE_DIRS})
 	list(APPEND SERVER_EXTRA_LIBS ${LEAPMOTION_LIBRARIES})
+endif()
+
+###
+# OpenCV for VRPN_USE_LEAPMOTION_GLASSES_TRACKING
+###
+find_package(OpenCV 4.2.0 PATHS "${CMAKE_INSTALL_PREFIX}/")
+
+option_requires(VRPN_USE_LEAPMOTION_GLASSES_TRACKING
+	"Build Tracker_LeapMotion with OpenCV support"
+	OFF_BY_DEFAULT
+	OpenCV_FOUND)
+
+if(VRPN_USE_LEAPMOTION_GLASSES_TRACKING AND OpenCV_FOUND)	
+	message(STATUS
+		"OpenCV_INCLUDE_DIRS: ${OpenCV_INCLUDE_DIRS}\n"
+		"OpenCV_LIBRARIES: ${OpenCV_LIBRARIES}\n"
+		)	
+	list(APPEND SERVER_EXTRA_LIBS ${OpenCV_LIBRARIES})
+	include_directories(${OpenCV_INCLUDE_DIRS})
 endif()
 
 ###
