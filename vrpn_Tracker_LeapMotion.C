@@ -105,7 +105,6 @@ vrpn_Tracker_LeapMotion::vrpn_Tracker_LeapMotion(const char* name,
     listener.vrpnTracker = this;
 #ifdef USE_GLASSES_TRACKING
 #if 1
-
     cv::namedWindow("window", cv::WINDOW_OPENGL);
     cv::resizeWindow("window", CAMERA_IMAGE_WIDTH * 2, CAMERA_IMAGE_HEIGHT * 2);
     cv::setMouseCallback("window", NULL);
@@ -114,7 +113,6 @@ vrpn_Tracker_LeapMotion::vrpn_Tracker_LeapMotion(const char* name,
                                   vrpn_Tracker_LeapMotion::on_opengl),
                               this);
 #endif
-
     controller.setPolicyFlags(Leap::Controller::POLICY_IMAGES);
 #endif
     controller.addListener(listener);
@@ -529,19 +527,15 @@ inline void glTV(float tx, float ty, float x, float y)
 }
 /*
 @author Zachary Wartell
+
+@todo [PRIORITY=LOW][PERFORMANCE] improve performance of transfer to texture image (low priority as this display is for just debugging)
 */
 void vrpn_Tracker_LeapMotion::on_opengl(
     vrpn_Tracker_LeapMotion* tracker_LeapMotion)
 {
     static const GLubyte WHITE[] = {255, 255, 255};
-
-    cv::setOpenGlContext("window");
+    
     glClear(GL_COLOR_BUFFER_BIT);
-
-    if (!(tracker_LeapMotion->listener.glassesTracking.left().dims  <= 2) ||
-        !(tracker_LeapMotion->listener.glassesTracking.right().dims <= 2))
-        // no image captured yet, so return
-        return;        
 
     // set viewport for left half of window
     glViewport(0, 0, CAMERA_IMAGE_WIDTH, CAMERA_IMAGE_HEIGHT * 2);
@@ -560,10 +554,10 @@ void vrpn_Tracker_LeapMotion::on_opengl(
 
     glBegin(GL_QUADS);
     glColor3ubv(WHITE);
-    glTV(0, 0, -1, +1);
-    glTV(1, 0, +1, +1);
-    glTV(1, 1, +1, -1);
-    glTV(0, 1, -1, -1);
+        glTV(0, 0, -1, +1);
+        glTV(1, 0, +1, +1);
+        glTV(1, 1, +1, -1);
+        glTV(0, 1, -1, -1);
     glEnd();
 
     // set viewport for right half of window
@@ -580,22 +574,19 @@ void vrpn_Tracker_LeapMotion::on_opengl(
     glLoadIdentity();
     glBegin(GL_QUADS);
     glColor3ubv(WHITE);
-    glTV(0, 0, -1, +1);
-    glTV(1, 0, +1, +1);
-    glTV(1, 1, +1, -1);
-    glTV(0, 1, -1, -1);
+        glTV(0, 0, -1, +1);
+        glTV(1, 0, +1, +1);
+        glTV(1, 1, +1, -1);
+        glTV(0, 1, -1, -1);
     glEnd();
 
     glDisable(GL_TEXTURE_2D);
 
     /* set viewport back to left side of window */
     glViewport(0, 0, CAMERA_IMAGE_WIDTH, CAMERA_IMAGE_HEIGHT * 2);
-#if 0
-    glTranslated(0.0, 0.0, -1.0);
-    glRotatef(55, 1, 0, 0);
-    glRotatef(45, 0, 1, 0);
-    glRotatef(0, 0, 0, 1);
-#endif
+
+
+    // debugging/testing code
     static const int coords[6][4][3] = {
         {{+1, -1, -1}, {-1, -1, -1}, {-1, +1, -1}, {+1, +1, -1}},
         {{+1, +1, -1}, {-1, +1, -1}, {-1, +1, +1}, {+1, +1, +1}},
