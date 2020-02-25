@@ -106,7 +106,7 @@ vrpn_Tracker_LeapMotion::vrpn_Tracker_LeapMotion(const char* name,
 #ifdef USE_GLASSES_TRACKING
 #if 1
     cv::namedWindow("window", cv::WINDOW_OPENGL);
-    cv::resizeWindow("window", CAMERA_IMAGE_WIDTH * 2, CAMERA_IMAGE_HEIGHT * 2);
+    cv::resizeWindow("window", CAMERA_IMAGE_WIDTH * 2, CAMERA_IMAGE_HEIGHT * vrpn_Tracker_LeapMotion::GlassesTracking::STRETCH_FACTOR);
     cv::setMouseCallback("window", NULL);
     cv::setOpenGlDrawCallback("window",
                               reinterpret_cast<cv::OpenGlDrawCallback>(
@@ -527,24 +527,29 @@ inline void glTV(float tx, float ty, float x, float y)
 }
 /*
 @author Zachary Wartell
+@brief Render Leap Camera left and right images plus some debugging graphics
 
-@todo [PRIORITY=LOW][PERFORMANCE] improve performance of transfer to texture image (low priority as this display is for just debugging)
+@todo [PRIORITY=LOW][PERFORMANCE] improve performance of transfer to texture
+image (low priority as this display is for just debugging)
 */
 void vrpn_Tracker_LeapMotion::on_opengl(
     vrpn_Tracker_LeapMotion* tracker_LeapMotion)
 {
     static const GLubyte WHITE[] = {255, 255, 255};
-    
+    static const GLubyte RED[] = {255, 0, 0};
+    static const GLubyte BLUE[] = {0, 0, 255};
+
     glClear(GL_COLOR_BUFFER_BIT);
 
     // set viewport for left half of window
-    glViewport(0, 0, CAMERA_IMAGE_WIDTH, CAMERA_IMAGE_HEIGHT * 2);
-    
+    glViewport(0, 0, CAMERA_IMAGE_WIDTH, CAMERA_IMAGE_HEIGHT * vrpn_Tracker_LeapMotion::GlassesTracking::STRETCH_FACTOR);
+
     if (tracker_LeapMotion->textLeft.empty())
         tracker_LeapMotion->textLeft.create(
-            CAMERA_IMAGE_HEIGHT * 2, CAMERA_IMAGE_WIDTH,
-                        cv::ogl::Texture2D::Format::DEPTH_COMPONENT);
-    
+            CAMERA_IMAGE_HEIGHT * vrpn_Tracker_LeapMotion::GlassesTracking::STRETCH_FACTOR,
+            CAMERA_IMAGE_WIDTH,
+            cv::ogl::Texture2D::Format::DEPTH_COMPONENT);
+
     tracker_LeapMotion->textLeft.copyFrom(
         tracker_LeapMotion->listener.glassesTracking.left());
     tracker_LeapMotion->textLeft.bind();
@@ -554,18 +559,21 @@ void vrpn_Tracker_LeapMotion::on_opengl(
 
     glBegin(GL_QUADS);
     glColor3ubv(WHITE);
-        glTV(0, 0, -1, +1);
-        glTV(1, 0, +1, +1);
-        glTV(1, 1, +1, -1);
-        glTV(0, 1, -1, -1);
+    glTV(0, 0, -1, +1);
+    glTV(1, 0, +1, +1);
+    glTV(1, 1, +1, -1);
+    glTV(0, 1, -1, -1);
     glEnd();
 
-    // set viewport for right half of window
-    glViewport(CAMERA_IMAGE_WIDTH, 0, CAMERA_IMAGE_WIDTH,
-               CAMERA_IMAGE_HEIGHT * 2);
+    /*
+    ** set viewport for right half of window
+    */
+    glViewport(CAMERA_IMAGE_WIDTH, 0, 
+               CAMERA_IMAGE_WIDTH, CAMERA_IMAGE_HEIGHT * vrpn_Tracker_LeapMotion::GlassesTracking::STRETCH_FACTOR);
     if (tracker_LeapMotion->textRight.empty())
         tracker_LeapMotion->textRight.create(
-            CAMERA_IMAGE_HEIGHT * 2, CAMERA_IMAGE_WIDTH,
+            CAMERA_IMAGE_HEIGHT * vrpn_Tracker_LeapMotion::GlassesTracking::STRETCH_FACTOR,
+            CAMERA_IMAGE_WIDTH,
             cv::ogl::Texture2D::Format::DEPTH_COMPONENT);
 
     tracker_LeapMotion->textRight.copyFrom(
@@ -574,36 +582,88 @@ void vrpn_Tracker_LeapMotion::on_opengl(
     glLoadIdentity();
     glBegin(GL_QUADS);
     glColor3ubv(WHITE);
-        glTV(0, 0, -1, +1);
-        glTV(1, 0, +1, +1);
-        glTV(1, 1, +1, -1);
-        glTV(0, 1, -1, -1);
+    glTV(0, 0, -1, +1);
+    glTV(1, 0, +1, +1);
+    glTV(1, 1, +1, -1);
+    glTV(0, 1, -1, -1);
     glEnd();
 
     glDisable(GL_TEXTURE_2D);
 
-    /* set viewport back to left side of window */
-    glViewport(0, 0, CAMERA_IMAGE_WIDTH, CAMERA_IMAGE_HEIGHT * 2);
 
+    /* 
+    ** set viewport back to left side of window 
+    */
+    glViewport(0, 0, CAMERA_IMAGE_WIDTH, CAMERA_IMAGE_HEIGHT * vrpn_Tracker_LeapMotion::GlassesTracking::STRETCH_FACTOR);
 
-    // debugging/testing code
-    static const int coords[6][4][3] = {
-        {{+1, -1, -1}, {-1, -1, -1}, {-1, +1, -1}, {+1, +1, -1}},
-        {{+1, +1, -1}, {-1, +1, -1}, {-1, +1, +1}, {+1, +1, +1}},
-        {{+1, -1, +1}, {+1, -1, -1}, {+1, +1, -1}, {+1, +1, +1}},
-        {{-1, -1, -1}, {-1, -1, +1}, {-1, +1, +1}, {-1, +1, -1}},
-        {{+1, -1, +1}, {-1, -1, +1}, {-1, -1, -1}, {+1, -1, -1}},
-        {{-1, -1, +1}, {+1, -1, +1}, {+1, +1, +1}, {-1, +1, +1}}};
-    for (int i = 0; i < 6; ++i) {
-        glColor3ub(i * 20, 100 + i * 10, i * 42);
-        glBegin(GL_QUADS);
-        for (int j = 0; j < 4; ++j) {
-            glVertex3d(0.2 * coords[i][j][0], 0.2 * coords[i][j][1],
-                       0.2 * coords[i][j][2]);
-        }
-        glEnd();
+    // Draw all rectified blobs together (orange left, yellow right)
+    // <unported> Also draw epipolar constraint triangle
+    /*
+    note in camera image coordinates upper-left is (0,0) with increasing pointing down, hence glOrtho 'reverse' top and bottom
+    */
+    glLoadIdentity();
+    glOrtho(0, CAMERA_IMAGE_WIDTH, CAMERA_IMAGE_HEIGHT * vrpn_Tracker_LeapMotion::GlassesTracking::STRETCH_FACTOR,
+            0, -1, 1);
+
+    glPointSize(5.0);
+    
+    glBegin(GL_POINTS);
+    // Draw unrectified blobs on top of raw images    
+    glColor3ubv(RED);
+    for (cv::KeyPoint blob : tracker_LeapMotion->listener.glassesTracking.blobsLeft)    
+        glVertex2f((float)blob.pt.x /*/ 2 */, (float)blob.pt.y /*/ 2*/);
+    
+    glColor3ubv(BLUE);
+    for (Leap::Vector blobslope : tracker_LeapMotion->listener.glassesTracking.leftSlopesEpifilt) {
+        // stroke(255, 50, 0);
+        // fill(0, 0, 0);
+        // rect(blobslope.x * 80 + 160, blobslope.y * 80 + 360 - 2, 16, 4);
+        ////noStroke();
+        // fill(255, 200, 0);
+        glVertex2f(blobslope.x * 80 + 160, blobslope.y * 80 + 360);
     }
+    glEnd();
+
+    /*
+    ** set viewport back to right side of window
+    */
+    glViewport(CAMERA_IMAGE_WIDTH, 0, 
+               CAMERA_IMAGE_WIDTH, CAMERA_IMAGE_HEIGHT * vrpn_Tracker_LeapMotion::GlassesTracking::STRETCH_FACTOR);
+
+    // Draw all rectified blobs together (orange left, yellow right)
+    // <unported> Also draw epipolar constraint triangle
+    /*
+    note in camera image coordinates upper-left is (0,0) with increasing
+    pointing down, hence glOrtho 'reverse' top and bottom
+    */
+    glLoadIdentity();
+    glOrtho(0, CAMERA_IMAGE_WIDTH, 
+            CAMERA_IMAGE_HEIGHT * vrpn_Tracker_LeapMotion::GlassesTracking::STRETCH_FACTOR, 0, 
+           -1, 1);
+
+    glPointSize(5.0);
+
+    glBegin(GL_POINTS);
+    // Draw unrectified blobs on top of raw images
+    glColor3ubv(RED);
+    for (cv::KeyPoint blob : tracker_LeapMotion->listener.glassesTracking.blobsRight)
+        glVertex2f((float)blob.pt.x /*/ 2 */, (float)blob.pt.y /*/ 2*/);
+
+    glColor3ubv(BLUE);
+    for (Leap::Vector blobslope : tracker_LeapMotion->listener.glassesTracking.rightSlopesEpifilt) {
+        // stroke(255, 50, 0);
+        // fill(0, 0, 0);
+        // rect(blobslope.x * 80 + 160, blobslope.y * 80 + 360 - 2, 16, 4);
+        ////noStroke();
+        // fill(255, 200, 0);
+        glVertex2f(blobslope.x * 80 + 160, blobslope.y * 80 + 360);
+    }
+    glEnd();
 }
+
+/*
+@author Zachary Wartell
+*/
 vrpn_Tracker_LeapMotion::GlassesTracking::GlassesTracking()
     : leftCamLeftMarker(q_vec::ZERO_VECTOR())
     , leftCamRightMarker(q_vec::ZERO_VECTOR())
@@ -660,6 +720,12 @@ vrpn_Tracker_LeapMotion::GlassesTracking::GlassesTracking()
 
 #define PORTED
 
+/*
+@author Zachary Wartell
+
+C++ coding and porting by Zachary Wartell. Algorithm by Rajarshi Roy
+originally in OpenCV and Processing (see full citations in .h file)
+*/
 void vrpn_Tracker_LeapMotion::GlassesTracking::update(const Leap::Frame& frame)
 {
     // std::cout << __FUNCTION__ << " " << __LINE__ << std::endl;
@@ -682,8 +748,8 @@ void vrpn_Tracker_LeapMotion::GlassesTracking::update(const Leap::Frame& frame)
     if (!leapInit) return;
         // std::cout << __FUNCTION__ << " " << __LINE__ << std::endl;
 
-#ifdef PORTED
-        // Stretch images vertically*2 from 640*240->640*480
+    // Stretch images vertically*2 from 640*240->640*480
+#ifdef PORTED    
 #if 0
     // error: ZJW mis-understanding OpenCV constructor; right now the nested for loops below is the only solution I have
     leftUnstretched.setTo(cv::Mat(leftUnstretched.size().height,leftUnstretched.size().width,leftUnstretched.type(),static_cast<const
@@ -695,28 +761,20 @@ void vrpn_Tracker_LeapMotion::GlassesTracking::update(const Leap::Frame& frame)
     assert(leftCam.width() == rightCam.width() &&
            leftCam.height() == rightCam.height() && rightCam.height() == 240);
     assert(leftCam.width() == right_.cols);
+
     /* \todo [PERFORMANCE] figure out how to memcpy using cv:Mat (must verify
      * that it legitimate in this case -- array layout, endianness etc.)
      */
     for (int i = 0; i < left_.rows; i += 2)
         for (int j = 0; j < left_.cols; j++) {
-#if 0
-            leftUnstretched.at<uchar>(i, j) =
-                (leftCam.width() * j + i) * leftCam.bytesPerPixel();
-            rightUnstretched.at<uchar>(i, j) =
-                (rightCam.width() * j + i) * rightCam.bytesPerPixel();
-#else
             left_.at<uchar>(i, j) = left_.at<uchar>(i + 1, j) =
                 leftCam.data()[(leftCam.width() * (i / 2) + j) *
                                leftCam.bytesPerPixel()];
+
             right_.at<uchar>(i, j) = right_.at<uchar>(i + 1, j) =
                 rightCam.data()[(rightCam.width() * (i / 2) + j) *
                                 rightCam.bytesPerPixel()];
-#endif
         };
-            // left_.copyTo(leftCopy);
-            // right_.copyTo(rightCopy);
-
 #else
     PImage leftCamStretched = leftUnstretched.getSnapshot();
     PImage rightCamStretched = rightUnstretched.getSnapshot();
@@ -740,12 +798,12 @@ void vrpn_Tracker_LeapMotion::GlassesTracking::update(const Leap::Frame& frame)
 
 #ifdef PORTED
     // Detect Blobs in Left and Right Images
-    std::vector<cv::KeyPoint> blobsLeft;
+    blobsLeft.clear();
     blobDetector->detect(left_, blobsLeft);
-    std::vector<cv::KeyPoint> blobsRight;
+    blobsRight.clear();
     blobDetector->detect(right_, blobsRight);
-    std::cout << "blobsRight.size(): " << blobsRight.size() << std::endl;
-    std::cout << "blobsLeft.size(): " << blobsLeft.size() << std::endl;
+    std::cout << "blobsRight: " << blobsRight.size() << std::endl;
+    std::cout << "blobs Left: " << blobsLeft.size() << std::endl;
 #else
     // Detect Blobs in Left and Right Images
     // Output: blobsLeft, blobsRight List<KeyPoint>
@@ -762,10 +820,13 @@ void vrpn_Tracker_LeapMotion::GlassesTracking::update(const Leap::Frame& frame)
     std::vector<Leap::Vector> leftSlopes;
     std::vector<Leap::Vector> rightSlopes;
 
+   #if 0
+    // ZJW: this seems unnecessary , something about Processing API seems to require an extra step...
     Leap::Image leftCamRectifier(leftCam);
     Leap::Image rightCamRectifier(rightCam);
     // com.leapmotion.leap.Image leftCamRectifier = leftCam.getRaw();
     // com.leapmotion.leap.Image rightCamRectifier = rightCam.getRaw();
+   #endif
 #else
     // Rectify blobsLeft and blobsRight
     ArrayList<PVector> leftSlopes = new ArrayList<PVector>();
@@ -774,12 +835,18 @@ void vrpn_Tracker_LeapMotion::GlassesTracking::update(const Leap::Frame& frame)
     com.leapmotion.leap.Image rightCamRectifier = rightCam.getRaw();
 #endif
 #ifdef PORTED
+    /*
+    ZJW: See
+    file:///C:/Users/zwartell/Dropbox%20(UNC%20Charlotte)/Research/vrpn/submodules/LeapSDK/docs/cpp/devguide/Leap_Images.html
+    for discussion of slopes (used to store dirction of unit vector as (delta_u/delta_z, delta_v/delta_z)
+    */
     for (int i = 0; i < blobsLeft.size(); i++)
-        leftSlopes.push_back(leftCamRectifier.rectify(Leap::Vector(
-            (float)blobsLeft[i].pt.x, (float)blobsLeft[i].pt.y / 2, 0)));
+        leftSlopes.push_back(leftCam.rectify(Leap::Vector(
+            (float)blobsLeft[i].pt.x,  (float)blobsLeft[i].pt.y / STRETCH_FACTOR, 0)));
+
     for (int i = 0; i < blobsRight.size(); i++)
-        rightSlopes.push_back(rightCamRectifier.rectify(Leap::Vector(
-            (float)blobsRight[i].pt.x, (float)blobsRight[i].pt.y / 2, 0)));
+        rightSlopes.push_back(rightCam.rectify(Leap::Vector(
+            (float)blobsRight[i].pt.x, (float)blobsRight[i].pt.y / STRETCH_FACTOR, 0)));
 #else
     if (blobsLeft.size() > 0) {
         for (int i = 0; i < blobsLeft.size(); i++) {
@@ -808,15 +875,15 @@ void vrpn_Tracker_LeapMotion::GlassesTracking::update(const Leap::Frame& frame)
 
 #ifdef PORTED
     // Make a epipolar constraint filtered match list
-    std::vector<Leap::Vector> leftSlopesEpifilt;
-    std::vector<Leap::Vector> rightSlopesEpifilt;
+    leftSlopesEpifilt.clear();
+    rightSlopesEpifilt.clear();
 
     for (Leap::Vector leftSlope : leftSlopes) {
         for (Leap::Vector rightSlope : rightSlopes) {
-            if (((leftSlope.x - rightSlope.x) < 0) &&
-                ((rightSlope.x - leftSlope.x) < 0.2) &&
-                ((leftSlope.y - rightSlope.y) < 0.025) &&
-                ((rightSlope.y - leftSlope.y) < 0.025)) {
+            if (((leftSlope.x - rightSlope.x) < 0) &&      // 1 "the marker in left image needing to be to the left to the marker in the right image."                
+                ((rightSlope.x - leftSlope.x) < 0.2) &&    // 2 "limits rectangle size, value determined experimentally"
+                ((leftSlope.y - rightSlope.y) < 0.025) &&  // 3 "from epipolar constraint"
+                ((rightSlope.y - leftSlope.y) < 0.025)) {  // 4 "from epipolar constraint"
                 leftSlopesEpifilt.push_back(leftSlope);
                 rightSlopesEpifilt.push_back(rightSlope);
             }

@@ -7,6 +7,8 @@
 Stage I - copy code from vrpn_Tracker_NULL
 
 @copyright Copyright Zachary Wartell 2020.
+
+
 */
 #include <stdio.h> // for NULL, FILE
 
@@ -249,9 +251,13 @@ protected:
     /*
     @author Zachary Wartell
 
-    C++ coding and porting by Zachary Wartell. Algorithm by Rajarshi Roy
-    originally in OpenCV and Processing
-    (https://github.com/rajarshiroy/CS231A_PROJECT)
+    C++ coding and porting by Zachary Wartell. Algorithm by Rajarshi Roy (see [R1]) originally in OpenCV and Processing    
+
+    REFERENCES:
+
+    - [R1] Rajarshi RoyStanford University (rroy@stanford.edu). Eyeglass positional
+      tracking using leap motion controller for parallax projection.
+      [https://www.youtube.com/watch?v=2AcUEn5iE2s][https://web.stanford.edu/class/cs231a/prev_projects_2016/rroy_finalreport.pdf]
     */
     class VRPN_API GlassesTracking {
     public:
@@ -263,8 +269,15 @@ protected:
         const cv::Mat &left() const { return left_; }
         const cv::Mat &right() const { return right_; }
 
+    public:
+        /*
+        R.R. [R1] introduces a stretch factor into the image processing, possibly because the Leap aspect ratio is not very square and OpenCV 
+        blob tracking looks works better for circular blobs rather than squashed elliptical blobs ?
+        */
+        static const unsigned short STRETCH_FACTOR = 2;
     private:
         static const unsigned short QUEUE_LENGTH = 3;
+    
       
         std::list<q_vec> leftMarkerQueue;
         std::list<q_vec> rightMarkerQueue;
@@ -287,7 +300,17 @@ protected:
         q_vec rightCamRightMarker;
         // Triangulated 3D marker position
         q_vec leftMarkerPos;
-        q_vec rightMarkerPos;
+        q_vec rightMarkerPos;        
+
+    public:
+        // epipolar constraint filtered match list
+        std::vector<Leap::Vector> leftSlopesEpifilt;
+        std::vector<Leap::Vector> rightSlopesEpifilt;
+
+        // Detect Blobs in Left and Right Images
+        std::vector<cv::KeyPoint> blobsLeft;        
+        std::vector<cv::KeyPoint> blobsRight;
+    private:
 
         // Moving average queues for smoothing
         std::list<q_vec> leftMarkerPosQueue;
