@@ -21,26 +21,12 @@ Stage I - copy code from vrpn_Tracker_NULL
 
 class VRPN_API vrpn_RedundantTransmission;
 
+#define LEAPMOTION_DEBUG_OPENL_WINDOW
 #define USE_GLASSES_TRACKING
 #ifdef USE_GLASSES_TRACKING
 #include "opencv2/core.hpp"
 #include "opencv2/features2d.hpp"
-
-#if 0
-namespace vrpnExt {
-    namespace Leap {
-        /*
-        @author Zachary Wartell
-        @brief wrapper class for Leap::Image with extra functionality
-        */
-        class Image : public Leap::Image 
-        {
-        public:
-            operator[](int i) { }
-        };
-    } // namespace Leap
-} // namespace vrpnExt
-#endif
+#include "opencv2/core/opengl.hpp"
 #endif
 
 namespace vrpnExt {
@@ -51,7 +37,7 @@ namespace vrpnExt {
 
     ZJW: [work-in-progress] I'll add to wrappers as I need them...
     */
-    class q_vec {        
+    class q_vec {
     public:
         typedef double Scalar;
 
@@ -120,11 +106,12 @@ namespace vrpnExt {
             result << "(" << x() << ", " << y() << ", " << z() << ")";
             return result.str();
         }
-  
+
         friend std::ostream &operator<<(std::ostream &out, const q_vec &v)
         {
             return out << v.toString();
         }
+
     private:
         q_vec_type v;
     };
@@ -156,8 +143,13 @@ using namespace vrpnExt;
 @author Zachary Wartell
 
 
+file:///C:/Users/zwartell/Dropbox%20(UNC%20Charlotte)/Research/vrpn/submodules/LeapSDK/docs/cpp/devguide/Leap_Coordinate_Mapping.html
+
+P1) Units "The Leap Motion Controller provides coordinates in units of real
+world millimeters within the Leap Motion frame of reference"
 */
 class VRPN_API vrpn_Tracker_LeapMotion : public vrpn_Tracker {
+
 public:
     vrpn_Tracker_LeapMotion(const char *name, vrpn_Connection *c,
                             vrpn_int32 sensors = 1, vrpn_float64 Hz = 1.0);
@@ -169,6 +161,9 @@ public:
 
     enum struct Finger { Thumb, Index, Middle, Ring, Pinky };
     enum struct Bone { Metacarpal, Proximal, Middle, Distal };
+
+    static const unsigned short CAMERA_IMAGE_WIDTH = 640;
+    static const unsigned short CAMERA_IMAGE_HEIGHT = 240;  
 
 #if 0
     enum struct Finger { Thumb, Index, Middle, Ring, Pinky };
@@ -263,13 +258,14 @@ protected:
         GlassesTracking();
         void update(const Leap::Frame &frame);
 
-        const q_vec &leftMarker() const { return leftMarkerPosAvg;  }
+        const q_vec &leftMarker() const { return leftMarkerPosAvg; }
         const q_vec &rightMarker() const { return rightMarkerPosAvg; }
         const cv::Mat &left() const { return left_; }
         const cv::Mat &right() const { return right_; }
-        
 
     private:
+        static const unsigned short QUEUE_LENGTH = 3;
+      
         std::list<q_vec> leftMarkerQueue;
         std::list<q_vec> rightMarkerQueue;
 
@@ -356,8 +352,8 @@ protected:
         virtual void onConnect(const Leap::Controller &);
         virtual void onDisconnect(const Leap::Controller &);
         virtual void onExit(const Leap::Controller &);
-        virtual void onFrame(const Leap::Controller &);        
-        virtual void onImages(const Leap::Controller &) override;        
+        virtual void onFrame(const Leap::Controller &);
+        virtual void onImages(const Leap::Controller &) override;
         virtual void onFocusGained(const Leap::Controller &);
         virtual void onFocusLost(const Leap::Controller &);
         virtual void onDeviceChange(const Leap::Controller &);
@@ -368,10 +364,19 @@ protected:
 #ifdef USE_GLASSES_TRACKING
         GlassesTracking glassesTracking;
 #endif
+
     private:
     };
+
     Listener listener;
     Leap::Controller controller;
+
+    private:
+#if defined(USE_GLASSES_TRACKING) && defined(LEAPMOTION_DEBUG_OPENL_WINDOW)
+    static void on_opengl(vrpn_Tracker_LeapMotion *tracker_LeapMotion);
+    cv::ogl::Texture2D textRight;
+    cv::ogl::Texture2D textLeft;
+#endif
 
 public:
 };
